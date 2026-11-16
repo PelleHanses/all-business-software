@@ -9,6 +9,13 @@
     fail_msg: "Set authentik_secret_key and authentik_postgres_password in an encrypted inventory group_vars file."
   no_log: true
 
+- name: Validate Caddy inventory group when Authentik proxying is enabled
+  ansible.builtin.assert:
+    that:
+      - groups.get('caddy', []) | length > 0
+    fail_msg: "authentik_caddy_enabled is true, but the inventory has no hosts in the [caddy] group."
+  when: authentik_caddy_enabled | bool
+
 - name: Create Authentik application data directories
   ansible.builtin.file:
     path: "{{ authentik_config_dir }}/{{ item }}"
@@ -43,18 +50,20 @@
 - name: Add or update Authentik Caddy site fragment
   ansible.builtin.template:
     src: caddy-site.caddy.j2
-    dest: "{{ hostvars['caddy-server'].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/authentik.caddy"
+    dest: "{{ hostvars[caddy_host].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/authentik.caddy"
     owner: root
     group: root
     mode: "0640"
-  delegate_to: caddy-server
+  delegate_to: "{{ caddy_host }}"
   when: authentik_caddy_enabled | bool
-  notify: Reload Caddy
+  notify: Reload Caddy after Authentik fragment update
 
 - name: Remove Authentik Caddy fragment when proxying is disabled
   ansible.builtin.file:
-    path: "{{ hostvars['caddy-server'].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/authentik.caddy"
+    path: "{{ hostvars[caddy_host].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/authentik.caddy"
     state: absent
-  delegate_to: caddy-server
-  when: not (authentik_caddy_enabled | bool)
-  notify: Reload Caddy
+  delegate_to: "{{ caddy_host }}"
+  when:
+    - not (authentik_caddy_enabled | bool)
+    - groups.get('caddy', []) | length > 0
+  notify: Reload Caddy after Authentik fragment update
