@@ -4,7 +4,9 @@ Ansible automation for deploying self-hosted business services on separate Linux
 
 ## Architecture
 
-- Each service (for example Caddy, Authentik and monitoring) runs on its own VM unless the inventory is deliberately configured otherwise.
+- Services are deployed by independent Ansible roles and Compose projects. A service can run on a dedicated VM, or several services can share one Docker VM.
+- The inventory separates **Docker hosts** (`[docker_hosts]`) from **service groups** (`[caddy]`, `[authentik]`, `[monitoring]`). A host may belong to several service groups, which is how services are consolidated onto one VM.
+- Prometheus, Grafana and Loki are one monitoring stack in one Compose project and always run together on the same host.
 - The VMs run **Ubuntu Server 26.04 LTS**.
 - Docker Compose runs the application containers. Each Compose project has its own automatically created default network.
 - Containers in the same Compose project communicate using Compose service names.
@@ -104,7 +106,25 @@ Edit `ansible/inventory/hosts.ini`:
 - Change `ansible_ssh_private_key_file` if your key is stored elsewhere.
 - Keep every Docker VM in the `docker_hosts` group.
 
-The inventory contains only the three example service VMs. Add any additional Docker VM under `[docker_hosts]`; it will receive the `common` baseline and Alloy role when the relevant playbook runs. There is no dedicated common VM.
+The example has three separate VMs, but this is not a requirement. To run all services on one Docker VM, define it once in `[docker_hosts]` and add the same inventory hostname to all service groups:
+
+```ini
+[docker_hosts]
+apps-01 ansible_host=192.168.1.50
+
+[caddy]
+apps-01
+
+[authentik]
+apps-01
+
+[monitoring]
+apps-01
+```
+
+To place only Caddy and Authentik together, list the same host in `[caddy]` and `[authentik]` while keeping monitoring on another host. Prometheus, Grafana and Loki are intentionally deployed together by the single `monitoring` role and Compose project.
+
+The `common` role is not a VM: it is applied to every host in `[docker_hosts]`. Add each physical/virtual Docker host there, regardless of which services it runs.
 
 ## Requirements on the Ansible control machine
 
@@ -180,15 +200,15 @@ This prepares all Docker hosts and deploys Caddy, Authentik and monitoring on th
 ### Deploy or update one service
 
 ```bash
-ansible-playbook playbooks/caddy.yml --limit caddy-server
-ansible-playbook playbooks/authentik.yml --limit authentik-server
-ansible-playbook playbooks/monitoring.yml --limit monitoring-server
+ansible-playbook playbooks/caddy.yml --limit caddy
+ansible-playbook playbooks/authentik.yml --limit authentik
+ansible-playbook playbooks/monitoring.yml --limit monitoring
 ```
 
 To run the common baseline on one VM only:
 
 ```bash
-ansible-playbook playbooks/common.yml --limit caddy-server
+ansible-playbook playbooks/common.yml --limit apps-01
 ```
 
 If sudo requires a password, add `--ask-become-pass` to the command. With the recommended NOPASSWD configuration, this is not necessary.
