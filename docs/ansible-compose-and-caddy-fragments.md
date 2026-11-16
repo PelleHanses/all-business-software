@@ -2,7 +2,8 @@
 
 ## Architecture
 
-- Each Docker VM can run one or more independent Compose projects under `/opt/docker/compose/<project>`. Service roles can share a host; the inventory service groups determine placement.
+- Each Proxmox LXC Docker host runs Ubuntu Server 26.04 and can host one or more independent Compose projects under `/opt/docker/compose/<project>`. Service roles can share an LXC; inventory service groups determine placement.
+- Docker Engine runs inside the LXC container. Enable Proxmox `nesting` and `keyctl` features and use a compatible cgroup v2 configuration; prefer unprivileged LXC containers.
 - Prometheus, Grafana and Loki are a single monitoring stack and run together on the host in `[monitoring]`.
 - Docker Compose creates one default network per project. Services in the same project use Compose service names.
 - Services on different VMs communicate through inventory DNS/IP addresses and published host ports. There are no shared or externally-created Docker networks.
@@ -21,11 +22,11 @@ Each application role owns one fragment file, for example:
 - Authentik role: `authentik.caddy`
 - Monitoring role: `grafana.caddy`
 
-The application role writes its fragment to `caddy` inventory group (the first host in that group) using `delegate_to`, then notifies a handler that reloads Caddy. It does not rewrite or append to the central Caddyfile. Disabling the corresponding `*_caddy_enabled` setting removes only that role's fragment.
+The application role writes its fragment to the first host in the `[caddy]` inventory group, selected through the `caddy_host` variable and `delegate_to`, then notifies a handler that reloads Caddy. The current setup expects one active Caddy host. It does not rewrite or append to the central Caddyfile. Disabling the corresponding `*_caddy_enabled` setting removes only that role's fragment.
 
 To enable the examples, set real DNS names in `inventory/group_vars/all.yml` and set `authentik_caddy_enabled: true` and/or `monitoring_caddy_enabled: true`. The default hostnames are placeholders and the fragments are disabled by default.
 
-When adding a new application role, follow the same pattern: render one `<service>.caddy` file on `caddy` inventory group (the first host in that group), point `reverse_proxy` at the application's private VM address and published port, and notify the Caddy reload handler. Do not make application containers join the Caddy Compose network.
+When adding a new application role, follow the same pattern: render one `<service>.caddy` file on `caddy_host`, point `reverse_proxy` at the application's private IP/DNS name and published port, and notify the role's Caddy reload handler. Do not make application containers join the Caddy Compose network.
 
 Caddy exposes ports 80 and 443 only. Its admin API (2019) is not published.
 
