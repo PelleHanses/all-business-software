@@ -10,7 +10,7 @@
     - alloy
 
 - name: Deploy Caddy
-  hosts: caddy-server
+  hosts: caddy
   become: true
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
@@ -18,7 +18,7 @@
     - caddy
 
 - name: Deploy Authentik
-  hosts: authentik-server
+  hosts: authentik
   become: true
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
@@ -26,7 +26,7 @@
     - authentik
 
 - name: Deploy Monitoring
-  hosts: monitoring-server
+  hosts: monitoring
   become: true
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
