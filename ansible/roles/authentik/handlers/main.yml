@@ -5,7 +5,7 @@
     state: present
   become: true
 
-- name: Reload Caddy
+- name: Reload Caddy after Authentik fragment update
   ansible.builtin.command:
     argv:
       - docker
@@ -17,7 +17,7 @@
       - reload
       - --config
       - /etc/caddy/Caddyfile
-    chdir: "{{ hostvars['caddy-server'].caddy_config_dir | default(compose_dir ~ '/caddy') }}"
-  delegate_to: caddy-server
+    chdir: "{{ hostvars[caddy_host].caddy_config_dir | default(compose_dir ~ '/caddy') }}"
+  delegate_to: "{{ caddy_host }}"
   changed_when: true
   become: true
