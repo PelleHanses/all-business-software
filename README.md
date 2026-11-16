@@ -5,16 +5,21 @@ Ansible automation for deploying self-hosted business services on separate Linux
 ## Architecture
 
 - Services are deployed by independent Ansible roles and Compose projects. A service can run on a dedicated VM, or several services can share one Docker VM.
-- The inventory separates **Docker hosts** (`[docker_hosts]`) from **service groups** (`[caddy]`, `[authentik]`, `[monitoring]`). A host may belong to several service groups, which is how services are consolidated onto one VM.
+- The inventory separates **Docker hosts** (`[docker_hosts]`) from **service groups** (`[caddy]`, `[authentik]`, `[monitoring]`). A host may belong to several service groups, which is how services are consolidated onto one Docker host.
+- The current Caddy fragment integration expects one active host in `[caddy]`; that host is resolved dynamically from the group rather than by a fixed inventory hostname.
 - Prometheus, Grafana and Loki are one monitoring stack in one Compose project and always run together on the same host.
-- The VMs run **Ubuntu Server 26.04 LTS**.
+- The Docker hosts are intended to be **Proxmox LXC containers running Ubuntu Server 26.04 LTS**. Docker Engine and Compose run inside each LXC container.
 - Docker Compose runs the application containers. Each Compose project has its own automatically created default network.
 - Containers in the same Compose project communicate using Compose service names.
 - Services on different VMs communicate through private DNS names/IP addresses and published ports. No shared external Docker network is required.
 - Caddy is the reverse proxy. Each application Ansible role owns its own Caddy site fragment; application roles do not rewrite a shared Caddyfile.
 - The `common` role is **not a server or VM**. It is a baseline role applied to every host in `docker_hosts`. It installs the common host prerequisites, Docker Engine and the Compose plugin. Application-specific software belongs in its own role.
 
-Container images are supplied by each upstream project and may use different Linux distributions internally. The host operating system being Ubuntu 26.04 does not mean every container must be based on Ubuntu.
+The LXC containers provide the Ubuntu 26.04 environment for Docker. Application containers use the official images supplied by their upstream projects and may use different base distributions. Only use a full Proxmox VM for a workload that needs kernel features, devices or isolation that are unsuitable for Docker inside LXC.
+
+### Proxmox LXC requirements
+
+Configure each Ubuntu 26.04 LXC container to support Docker-in-LXC. At minimum, enable Proxmox's `nesting` and `keyctl` features and use a compatible cgroup v2 configuration. Keep the LXC unprivileged where possible; do not disable AppArmor or make the container privileged just to get Docker running without first understanding the security implications. Verify Docker starts and can launch a test container before adding the LXC to the Ansible inventory.
 
 ## Accounts and privilege escalation
 
