@@ -1,6 +1,6 @@
 ---
 - name: Configure the Caddy reverse proxy
-  hosts: caddy-server
+  hosts: caddy
   become: true
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
