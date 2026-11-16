@@ -239,3 +239,4 @@ If sudo requires a password, add `--ask-become-pass` to the command. With the re
 - Back up persistent Compose volumes and configuration before upgrades.
 
 See [the Compose and Caddy fragment guide](docs/ansible-compose-and-caddy-fragments.md) for details about service networking, Caddy fragment ownership and monitoring.
+See [the Authentik Mittbolag setup](docs/authentik-mittbolag.md) for the initial users and groups, domain/DNS requirements, and per-application OIDC configuration.
