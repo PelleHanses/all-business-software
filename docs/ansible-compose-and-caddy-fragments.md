@@ -2,7 +2,8 @@
 
 ## Architecture
 
-- Each Docker VM has its own Compose project under `/opt/docker/compose/<project>`.
+- Each Docker VM can run one or more independent Compose projects under `/opt/docker/compose/<project>`. Service roles can share a host; the inventory service groups determine placement.
+- Prometheus, Grafana and Loki are a single monitoring stack and run together on the host in `[monitoring]`.
 - Docker Compose creates one default network per project. Services in the same project use Compose service names.
 - Services on different VMs communicate through inventory DNS/IP addresses and published host ports. There are no shared or externally-created Docker networks.
 - Published application ports bind to each VM's `ansible_host` address by default (`service_bind_address`). Restrict access with the host/network firewall.
@@ -20,11 +21,11 @@ Each application role owns one fragment file, for example:
 - Authentik role: `authentik.caddy`
 - Monitoring role: `grafana.caddy`
 
-The application role writes its fragment to `caddy-server` using `delegate_to`, then notifies a handler that reloads Caddy. It does not rewrite or append to the central Caddyfile. Disabling the corresponding `*_caddy_enabled` setting removes only that role's fragment.
+The application role writes its fragment to `caddy` inventory group (the first host in that group) using `delegate_to`, then notifies a handler that reloads Caddy. It does not rewrite or append to the central Caddyfile. Disabling the corresponding `*_caddy_enabled` setting removes only that role's fragment.
 
 To enable the examples, set real DNS names in `inventory/group_vars/all.yml` and set `authentik_caddy_enabled: true` and/or `monitoring_caddy_enabled: true`. The default hostnames are placeholders and the fragments are disabled by default.
 
-When adding a new application role, follow the same pattern: render one `<service>.caddy` file on `caddy-server`, point `reverse_proxy` at the application's private VM address and published port, and notify the Caddy reload handler. Do not make application containers join the Caddy Compose network.
+When adding a new application role, follow the same pattern: render one `<service>.caddy` file on `caddy` inventory group (the first host in that group), point `reverse_proxy` at the application's private VM address and published port, and notify the Caddy reload handler. Do not make application containers join the Caddy Compose network.
 
 Caddy exposes ports 80 and 443 only. Its admin API (2019) is not published.
 
@@ -51,7 +52,7 @@ ansible-galaxy collection install -r requirements.yml
 ansible-playbook playbooks/all.yml -l docker_hosts
 ```
 
-The `-l` limit is intentional. Use a narrower host limit for a single host, for example `-l authentik-server`. The inventory currently defines the four example Docker hosts in `hosts.ini`; replace those addresses and credentials with the real inventory.
+The `-l` limit is intentional. Use a narrower host limit for a single host, for example `-l authentik`. The example inventory uses service groups (`[caddy]`, `[authentik]`, `[monitoring]`) as well as `[docker_hosts]`. A single Docker host can belong to multiple service groups when services are consolidated. Prometheus, Grafana and Loki are deployed together on one monitoring host.
 
 ## Monitoring notes
 
