@@ -200,9 +200,11 @@ This applies the `common` baseline and Alloy agent to all hosts in `docker_hosts
 ansible-playbook playbooks/all.yml --limit docker_hosts
 ```
 
-This prepares all Docker hosts and deploys Caddy, Authentik and monitoring on the hosts assigned to those groups.
+This prepares all Docker hosts and deploys every service whose group matches those hosts.
 
-### Deploy or update one service
+### Deploy or update one service only
+
+Use the dedicated service playbook. It targets only that service group, even if the same inventory host also belongs to other service groups:
 
 ```bash
 ansible-playbook playbooks/caddy.yml --limit caddy
@@ -210,7 +212,17 @@ ansible-playbook playbooks/authentik.yml --limit authentik
 ansible-playbook playbooks/monitoring.yml --limit monitoring
 ```
 
-To run the common baseline on one VM only:
+The combined `all.yml` playbook also has service tags. If you prefer to use it for a single service, specify **both** the service tag and the matching limit:
+
+```bash
+ansible-playbook playbooks/all.yml --limit authentik --tags authentik
+ansible-playbook playbooks/all.yml --limit caddy --tags caddy
+ansible-playbook playbooks/all.yml --limit monitoring --tags monitoring
+```
+
+Do not use `playbooks/all.yml --limit authentik` by itself when hosts are shared: `--limit` selects hosts, not service plays. The `--tags` option is what restricts the combined playbook to the requested service. The dedicated service playbooks above are the recommended way to deploy one service; they also run the common baseline on the selected host.
+
+To run only the common baseline on one Docker host:
 
 ```bash
 ansible-playbook playbooks/common.yml --limit apps-01
