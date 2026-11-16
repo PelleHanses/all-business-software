@@ -8,4 +8,4 @@ authentik_restart_policy: "{{ docker_compose_restart_policy }}"
 authentik_bind_address: "{{ service_bind_address }}"
 authentik_caddy_enabled: false
 authentik_caddy_hostname: "authentik.example.com"
-authentik_caddy_upstream: "{{ hostvars['authentik-server'].ansible_host }}:9000"
+authentik_caddy_upstream: "{{ hostvars[groups['authentik'] | first].ansible_host }}:9000"
