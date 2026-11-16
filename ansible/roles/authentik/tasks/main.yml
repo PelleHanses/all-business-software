@@ -16,6 +16,22 @@
     fail_msg: "authentik_caddy_enabled is true, but the inventory has no hosts in the [caddy] group."
   when: authentik_caddy_enabled | bool
 
+- name: Create Authentik blueprint directory
+  ansible.builtin.file:
+    path: "{{ authentik_config_dir }}/blueprints"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy organization Authentik blueprint
+  ansible.builtin.copy:
+    src: organization.yaml
+    dest: "{{ authentik_config_dir }}/blueprints/organization.yaml"
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Create Authentik application data directories
   ansible.builtin.file:
     path: "{{ authentik_config_dir }}/{{ item }}"
