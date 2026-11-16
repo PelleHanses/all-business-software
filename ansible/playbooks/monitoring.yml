@@ -1,6 +1,6 @@
 ---
 - name: Configure monitoring
-  hosts: monitoring-server
+  hosts: monitoring
   become: true
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
