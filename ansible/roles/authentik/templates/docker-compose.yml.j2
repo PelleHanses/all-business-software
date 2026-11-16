@@ -39,6 +39,7 @@ services:
       - ./media:/media
       - ./custom_templates:/templates
       - ./certs:/certs
+      - ./blueprints:/blueprints:ro
     depends_on:
       postgresql:
         condition: service_healthy
