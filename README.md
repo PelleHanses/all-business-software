@@ -58,18 +58,28 @@ chmod 0600 ~/.ssh/id_ed25519_ansible
 
 Use a passphrase for an interactive control machine. For unattended Forgejo jobs, store the private key as a protected Forgejo secret and install it at runtime with permissions `0600`; do not commit the private key to Git.
 
-### 3. Copy the public key to every VM
+### 3. Install the public key on every VM
 
-For each VM, run `ssh-copy-id` using its IP address or DNS name:
+Because the `ansible` account was created with password login disabled, you cannot use `ssh-copy-id ansible@host` for the initial key installation. Use an existing administrator account that already has SSH access and sudo rights.
+
+One way is to display the public key on the control machine:
 
 ```bash
-ssh-copy-id -i ~/.ssh/id_ed25519_ansible.pub ansible@192.168.1.10
-ssh-copy-id -i ~/.ssh/id_ed25519_ansible.pub ansible@192.168.1.20
-ssh-copy-id -i ~/.ssh/id_ed25519_ansible.pub ansible@192.168.1.30
-ssh-copy-id -i ~/.ssh/id_ed25519_ansible.pub ansible@192.168.1.40
+cat ~/.ssh/id_ed25519_ansible.pub
 ```
 
-Replace the example addresses with the actual VM addresses. The command asks for the password of the existing administrator account used for the initial setup. It copies only the **public** key; never copy the private key to a server.
+On each VM, logged in as the existing administrator, add that single public-key line to the Ansible account:
+
+```bash
+sudo install -d -m 0700 -o ansible -g ansible /home/ansible/.ssh
+sudoedit /home/ansible/.ssh/authorized_keys
+sudo chown ansible:ansible /home/ansible/.ssh/authorized_keys
+sudo chmod 0600 /home/ansible/.ssh/authorized_keys
+```
+
+Paste the public key line into the editor and save. Repeat on every VM. Only the `.pub` public key is installed on servers; never copy the private key there.
+
+If you prefer `ssh-copy-id`, you can temporarily enable a password for the `ansible` account, run `ssh-copy-id -i ~/.ssh/id_ed25519_ansible.pub ansible@HOST`, and then lock its password again with `sudo passwd -l ansible`. The manual method above avoids enabling password login for the automation account.
 
 Test a connection:
 
