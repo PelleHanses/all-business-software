@@ -8,6 +8,8 @@
   roles:
     - common
     - alloy
+  tags:
+    - baseline
 
 - name: Deploy Caddy
   hosts: caddy
@@ -15,6 +17,8 @@
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
   roles:
+    - caddy
+  tags:
     - caddy
 
 - name: Deploy Authentik
@@ -24,6 +28,8 @@
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
   roles:
     - authentik
+  tags:
+    - authentik
 
 - name: Deploy Monitoring
   hosts: monitoring
@@ -31,4 +37,6 @@
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
   roles:
+    - monitoring
+  tags:
     - monitoring
