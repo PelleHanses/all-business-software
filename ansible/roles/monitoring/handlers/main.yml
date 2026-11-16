@@ -1,8 +1,0 @@
-# handlers file for monitoring
----
-- name: Restart Monitoring
-  community.docker.docker_compose:
-    project_src: "{{ monitoring_config_dir }}"
-    state: present
-    restarted: yes
-  become: yes

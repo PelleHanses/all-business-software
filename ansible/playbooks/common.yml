@@ -1,7 +1,0 @@
-# Playbook for common setup
----
-- name: Apply common configuration
-  hosts: docker_hosts
-  become: yes
-  roles:
-    - common

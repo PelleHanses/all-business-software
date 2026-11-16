@@ -1,8 +1,0 @@
-# handlers file for caddy
----
-- name: Restart Caddy
-  community.docker.docker_compose:
-    project_src: "{{ caddy_config_dir }}"
-    state: present
-    restarted: yes
-  become: yes
