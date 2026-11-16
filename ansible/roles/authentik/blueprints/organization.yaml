@@ -1,0 +1,92 @@
+# yaml-language-server: $schema=https://goauthentik.io/blueprints/schema.json
+version: 1
+metadata:
+  name: mittbolag-organization
+  labels:
+    blueprints.goauthentik.io/description: "Organization brand, groups and initial users for mittbolag.se"
+
+entries:
+  # Brand selection is based on the requested domain. Keep the built-in
+  # authentik-default brand as the instance-wide default for other domains.
+  - model: authentik_brands.brand
+    identifiers:
+      domain: mittbolag.se
+    attrs:
+      branding_title: Mittbolag
+      default: false
+
+  - model: authentik_core.group
+    identifiers:
+      name: users
+    attrs:
+      is_superuser: false
+
+  - model: authentik_core.group
+    identifiers:
+      name: osd
+    attrs:
+      is_superuser: false
+
+  - model: authentik_core.group
+    identifiers:
+      name: styrelsen
+    attrs:
+      is_superuser: false
+
+  - model: authentik_core.user
+    identifiers:
+      username: allan@mittbolag.se
+    attrs:
+      name: Allan Allansson
+      email: allan@mittbolag.se
+      is_active: true
+      attributes:
+        phone_number: "07012234567"
+
+  - model: authentik_core.user
+    identifiers:
+      username: olsson@mittbolag.se
+    attrs:
+      name: Olle Ollsson
+      email: olsson@mittbolag.se
+      is_active: true
+      attributes:
+        phone_number: "07054435345"
+
+  - model: authentik_core.user
+    identifiers:
+      username: greta@mittbolag.se
+    attrs:
+      name: Greta Gretadotter
+      email: greta@mittbolag.se
+      is_active: true
+      attributes:
+        phone_number: "0734234234"
+
+  # Membership is declared on the groups. !Find resolves the users by
+  # username, so the blueprint is repeatable and does not depend on DB IDs.
+  - model: authentik_core.group
+    identifiers:
+      name: users
+    attrs:
+      users:
+        - !Find [authentik_core.user, [username, "allan@mittbolag.se"]]
+        - !Find [authentik_core.user, [username, "olsson@mittbolag.se"]]
+        - !Find [authentik_core.user, [username, "greta@mittbolag.se"]]
+
+  - model: authentik_core.group
+    identifiers:
+      name: osd
+    attrs:
+      users:
+        - !Find [authentik_core.user, [username, "allan@mittbolag.se"]]
+        - !Find [authentik_core.user, [username, "olsson@mittbolag.se"]]
+        - !Find [authentik_core.user, [username, "greta@mittbolag.se"]]
+
+  - model: authentik_core.group
+    identifiers:
+      name: styrelsen
+    attrs:
+      users:
+        - !Find [authentik_core.user, [username, "allan@mittbolag.se"]]
+        - !Find [authentik_core.user, [username, "greta@mittbolag.se"]]
