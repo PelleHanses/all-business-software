@@ -1,6 +1,6 @@
 # All Business Software
 
-Ansible automation for deploying self-hosted business services on Proxmox LXC containers running Ubuntu 26.04 and Docker Compose.
+Ansible automation for deploying self-hosted business services on Proxmox QEMU VMs running Ubuntu Server 26.04 and Docker Compose.
 
 ## Architecture
 
@@ -8,22 +8,22 @@ Ansible automation for deploying self-hosted business services on Proxmox LXC co
 - The inventory separates **Docker hosts** (`[docker_hosts]`) from **service groups** (`[caddy]`, `[authentik]`, `[monitoring]`). A host may belong to several service groups, which is how services are consolidated onto one Docker host.
 - The current Caddy fragment integration expects one active host in `[caddy]`; that host is resolved dynamically from the group rather than by a fixed inventory hostname.
 - Prometheus, Grafana and Loki are one monitoring stack in one Compose project and always run together on the same host.
-- The Docker hosts are intended to be **Proxmox LXC containers running Ubuntu Server 26.04 LTS**. Docker Engine and Compose run inside each LXC container.
+- The Docker hosts are **Proxmox QEMU VMs running Ubuntu Server 26.04 LTS**. Docker Engine and Compose run inside each VM.
 - Docker Compose runs the application containers. Each Compose project has its own automatically created default network.
 - Containers in the same Compose project communicate using Compose service names.
 - Services on different VMs communicate through private DNS names/IP addresses and published ports. No shared external Docker network is required.
 - Caddy is the reverse proxy. Each application Ansible role owns its own Caddy site fragment; application roles do not rewrite a shared Caddyfile.
 - The `common` role is **not a server or VM**. It is a baseline role applied to every host in `docker_hosts`. It installs the common host prerequisites, Docker Engine and the Compose plugin. Application-specific software belongs in its own role.
 
-The LXC containers provide the Ubuntu 26.04 environment for Docker. Application containers use the official images supplied by their upstream projects and may use different base distributions. Only use a full Proxmox VM for a workload that needs kernel features, devices or isolation that are unsuitable for Docker inside LXC.
+Each Proxmox VM provides a normal Ubuntu 26.04 environment for Docker. Run Docker Engine and the Compose plugin directly inside the VM; do not nest Docker inside a Proxmox LXC container for this design. Application containers use the official images supplied by their upstream projects and may use different base distributions.
 
-### Proxmox LXC requirements
+### Proxmox VM requirements
 
-Configure each Ubuntu 26.04 LXC container to support Docker-in-LXC. At minimum, enable Proxmox's `nesting` and `keyctl` features and use a compatible cgroup v2 configuration. Keep the LXC unprivileged where possible; do not disable AppArmor or make the container privileged just to get Docker running without first understanding the security implications. Verify Docker starts and can launch a test container before adding the LXC to the Ansible inventory.
+Create a QEMU VM for each Docker host, install Ubuntu Server 26.04 LTS, enable the OpenSSH server, and ensure `/usr/bin/python3` is available. Use a normal VM disk on reliable storage and configure backups at the Proxmox level. Install Docker Engine and the Compose plugin through the `common` Ansible role.
 
 ## Accounts and privilege escalation
 
-Ansible connects to each Docker host (LXC container) using a **normal local Linux account**, not the root account.
+Ansible connects to each Docker host (Ubuntu VM) using a **normal local Linux account**, not the root account.
 
 The example inventory sets:
 
@@ -31,11 +31,11 @@ The example inventory sets:
 - SSH key on the Ansible control machine: `~/.ssh/id_ed25519_ansible`
 - Privilege escalation: `sudo` to `root` for tasks that need administrative privileges.
 
-Create the local `ansible` account in every target LXC container before running the playbooks. The account needs a home directory, the public SSH key in `~ansible/.ssh/authorized_keys`, and permission to use sudo. Do not enable direct SSH login as root.
+Create the local `ansible` account in every target Ubuntu VM before running the playbooks. The account needs a home directory, the public SSH key in `~ansible/.ssh/authorized_keys`, and permission to use sudo. Do not enable direct SSH login as root.
 
 For unattended deployments (for example from a Forgejo runner), the example below gives this dedicated account passwordless sudo. This account is consequently highly privileged: protect its private SSH key, restrict network access to SSH, and do not reuse it for interactive administration. If you prefer sudo to require a password, omit the NOPASSWD sudoers rule and run Ansible with `--ask-become-pass`.
 
-### 1. Create the local account in each Ubuntu LXC container
+### 1. Create the local account in each Ubuntu VM
 
 Log in using an existing administrator account and run:
 
@@ -52,7 +52,7 @@ sudo chmod 0440 /etc/sudoers.d/ansible
 sudo visudo -cf /etc/sudoers.d/ansible
 ```
 
-Do this in **each** target LXC container. If the account already exists, check its home directory and sudo configuration rather than creating it again.
+Do this in **each** target Ubuntu VM. If the account already exists, check its home directory and sudo configuration rather than creating it again.
 
 ### 2. Create an SSH key on the Ansible control machine
 
@@ -65,7 +65,7 @@ chmod 0600 ~/.ssh/id_ed25519_ansible
 
 Use a passphrase for an interactive control machine. For unattended Forgejo jobs, store the private key as a protected Forgejo secret and install it at runtime with permissions `0600`; do not commit the private key to Git.
 
-### 3. Install the public key in every LXC container
+### 3. Install the public key in every Ubuntu VM
 
 Because the `ansible` account was created with password login disabled, you cannot use `ssh-copy-id ansible@host` for the initial key installation. Use an existing administrator account that already has SSH access and sudo rights.
 
@@ -75,7 +75,7 @@ One way is to display the public key on the control machine:
 cat ~/.ssh/id_ed25519_ansible.pub
 ```
 
-In each LXC container, logged in as the existing administrator, add that single public-key line to the Ansible account:
+In each Ubuntu VM, logged in as the existing administrator, add that single public-key line to the Ansible account:
 
 ```bash
 sudo install -d -m 0700 -o ansible -g ansible /home/ansible/.ssh
@@ -84,7 +84,7 @@ sudo chown ansible:ansible /home/ansible/.ssh/authorized_keys
 sudo chmod 0600 /home/ansible/.ssh/authorized_keys
 ```
 
-Paste the public key line into the editor and save. Repeat in every LXC container. Only the `.pub` public key is installed on servers; never copy the private key there.
+Paste the public key line into the editor and save. Repeat in every Ubuntu VM. Only the `.pub` public key is installed on servers; never copy the private key there.
 
 If you prefer `ssh-copy-id`, you can temporarily enable a password for the `ansible` account, run `ssh-copy-id -i ~/.ssh/id_ed25519_ansible.pub ansible@HOST`, and then lock its password again with `sudo passwd -l ansible`. The manual method above avoids enabling password login for the automation account.
 
@@ -106,7 +106,7 @@ It should print `root`. This does not mean Ansible logs in as root: SSH still us
 
 Edit `ansible/inventory/hosts.ini`:
 
-- Replace the example IP addresses with the private IPs or resolvable DNS names of your LXC containers.
+- Replace the example IP addresses with the private IPs or resolvable DNS names of your Ubuntu VMs.
 - Change `ansible_user` if you chose a different local account name.
 - Change `ansible_ssh_private_key_file` if your key is stored elsewhere.
 - Keep every Docker VM in the `docker_hosts` group.
@@ -142,7 +142,7 @@ cd ansible
 ansible-galaxy collection install -r requirements.yml
 ```
 
-The target Ubuntu LXC containers need Python 3 available at `/usr/bin/python3` (the inventory sets this interpreter), SSH access, and sudo configured as described above.
+The target Ubuntu VMs need Python 3 available at `/usr/bin/python3` (the inventory sets this interpreter), SSH access, and sudo configured as described above.
 
 ## Configure secrets
 
