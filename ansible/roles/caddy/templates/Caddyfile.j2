@@ -1,0 +1,22 @@
+{
+  email admin@example.com
+}
+
+# HTTP to HTTPS redirect
+:80 {
+  redir https://{host}{uri}
+}
+
+# HTTPS site
+:443 {
+  reverse_proxy / http://localhost:8000
+  
+  # Enable logging
+  log {
+    output file /var/log/caddy/access.log {
+      roll_size 100mb
+      roll_keep 5
+      roll_keep_days 7
+    }
+  }
+}

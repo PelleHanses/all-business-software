@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:{{ prometheus_image_version }}
+    container_name: prometheus
+    restart: {{ docker_compose_restart_policy }}
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - {{ service_network }}
+
+  grafana:
+    image: grafana/grafana:{{ grafana_image_version }}
+    container_name: grafana
+    restart: {{ docker_compose_restart_policy }}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_storage:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=change-this-in-production
+    networks:
+      - {{ service_network }}
+
+  loki:
+    image: grafana/loki:{{ loki_image_version }}
+    container_name: loki
+    restart: {{ docker_compose_restart_policy }}
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/loki.yml
+    volumes:
+      - ./loki:/etc/loki
+    networks:
+      - {{ service_network }}
+
+  alloy:
+    image: grafana/alloy:{{ alloy_image_version }}
+    container_name: alloy
+    restart: {{ docker_compose_restart_policy }}
+    ports:
+      - "12345:12345"
+    volumes:
+      - ./alloy:/etc/alloy
+    command: -config.file=/etc/alloy/alloy.yml
+    networks:
+      - {{ service_network }}
+
+volumes:
+  prometheus_data:
+  grafana_storage:
+
+networks:
+  {{ service_network }}:
+    external: true

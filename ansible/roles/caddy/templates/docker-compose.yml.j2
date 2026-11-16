@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:{{ caddy_image_version }}
+    container_name: caddy
+    restart: {{ docker_compose_restart_policy }}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "2019:2019"
+    volumes:
+      - {{ caddy_config_file }}:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - {{ service_network }}
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  {{ service_network }}:
+    external: true
