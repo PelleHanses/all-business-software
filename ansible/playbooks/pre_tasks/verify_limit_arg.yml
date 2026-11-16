@@ -1,6 +1,6 @@
 ---
-- name: Verify -l-argument is set
-  fail:
-    msg: "❌ Denna playbook får inte köras utan -l-argument (t.ex. -l qa eller -l prod)"
+- name: Verify that an Ansible limit was supplied
+  ansible.builtin.fail:
+    msg: "This playbook requires --limit (for example: -l caddy-server or -l docker_hosts)."
   run_once: true
-  when: ansible_limit is not defined
+  when: ansible_limit | default('') | length == 0

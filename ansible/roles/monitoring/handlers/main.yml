@@ -1,8 +1,23 @@
-# handlers file for monitoring
 ---
 - name: Restart Monitoring
-  community.docker.docker_compose:
+  community.docker.docker_compose_v2:
     project_src: "{{ monitoring_config_dir }}"
     state: present
-    restarted: yes
-  become: yes
+  become: true
+
+- name: Reload Caddy
+  ansible.builtin.command:
+    argv:
+      - docker
+      - compose
+      - exec
+      - -T
+      - caddy
+      - caddy
+      - reload
+      - --config
+      - /etc/caddy/Caddyfile
+    chdir: "{{ hostvars['caddy-server'].caddy_config_dir | default(compose_dir ~ '/caddy') }}"
+  delegate_to: caddy-server
+  changed_when: true
+  become: true

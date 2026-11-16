@@ -1,0 +1,6 @@
+# Copy this file to inventory/group_vars/all.vault.yml and replace the values.
+# Encrypt the destination with ansible-vault before running any playbook:
+#   ansible-vault encrypt inventory/group_vars/all.vault.yml --vault-id prod@prompt
+authentik_secret_key: "REPLACE_WITH_A_RANDOM_SECRET_OF_AT_LEAST_32_CHARACTERS"
+authentik_postgres_password: "REPLACE_WITH_A_RANDOM_DATABASE_PASSWORD"
+grafana_admin_password: "REPLACE_WITH_A_RANDOM_GRAFANA_PASSWORD"

@@ -1,22 +1,29 @@
-# tasks file for caddy
 ---
-- name: Create Caddy sites directory
-  file:
-    path: "{{ caddy_sites_dir }}"
+- name: Create Caddy configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
     state: directory
-    mode: '0755'
-  become: yes
+    owner: root
+    group: root
+    mode: "0750"
+  loop:
+    - "{{ caddy_config_dir }}"
+    - "{{ caddy_sites_dir }}"
 
-- name: Deploy Caddy docker-compose.yml
-  template:
+- name: Deploy Caddy Compose file
+  ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ caddy_config_dir }}/docker-compose.yml"
-    mode: '0644'
+    owner: root
+    group: root
+    mode: "0600"
   notify: Restart Caddy
 
-- name: Deploy Caddyfile
-  template:
+- name: Deploy the stable Caddyfile importer
+  ansible.builtin.template:
     src: Caddyfile.j2
     dest: "{{ caddy_config_file }}"
-    mode: '0644'
+    owner: root
+    group: root
+    mode: "0640"
   notify: Restart Caddy

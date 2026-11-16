@@ -1,75 +1,39 @@
-# tasks file for common
 ---
 - name: Update apt cache
-  apt:
-    update_cache: yes
-  become: yes
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
 
-- name: Install common packages
-  apt:
-    name:
-      - curl
-      - wget
-      - git
-      - vim
-      - htop
-      - net-tools
-      - unzip
-      - software-properties-common
-      - docker.io
-      - docker-compose-plugin
+- name: Install common packages and Docker Compose
+  ansible.builtin.apt:
+    name: "{{ common_packages + docker_packages }}"
     state: present
-  become: yes
+  become: true
 
 - name: Ensure Docker is running
-  service:
+  ansible.builtin.service:
     name: docker
     state: started
-    enabled: yes
-  become: yes
+    enabled: true
+  become: true
 
 - name: Set timezone
-  timezone:
+  community.general.timezone:
     name: "{{ common_timezone }}"
-  become: yes
+  become: true
 
-- name: Set locale
-  locale_gen:
+- name: Generate locale
+  community.general.locale_gen:
     name: "{{ common_locale }}"
     state: present
-  become: yes
+  become: true
 
-- name: Create compose directory
-  file:
+- name: Create Compose root directory
+  ansible.builtin.file:
     path: "{{ compose_dir }}"
     state: directory
-    mode: '0755'
-  become: yes
-
-- name: Create service directories
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
-  become: yes
-  loop:
-    - "{{ caddy_config_dir }}"
-    - "{{ authentik_config_dir }}"
-    - "{{ monitoring_config_dir }}"
-    - "{{ alloy_config_dir }}"
-
-- name: Deploy Alloy docker-compose.yml
-  template:
-    src: alloy-docker-compose.yml.j2
-    dest: "{{ alloy_config_dir }}/docker-compose.yml"
-    mode: '0644'
-  when: alloy_enabled
-  notify: Restart Alloy
-
-- name: Deploy Alloy config
-  template:
-    src: alloy.yml.j2
-    dest: "{{ alloy_config_file }}"
-    mode: '0644'
-  when: alloy_enabled
-  notify: Restart Alloy
+    owner: root
+    group: root
+    mode: "0755"
+  become: true

@@ -1,51 +1,76 @@
-version: '3.8'
-
 services:
-  authentik:
+  server:
     image: ghcr.io/goauthentik/server:{{ authentik_image_version }}
-    container_name: authentik
+    container_name: authentik-server
+    command: server
     restart: {{ authentik_restart_policy }}
+    environment:
+      AUTHENTIK_SECRET_KEY: {{ (authentik_secret_key | replace('$', '$$')) | to_json }}
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: {{ (authentik_postgres_password | replace('$', '$$')) | to_json }}
+      AUTHENTIK_POSTGRESQL__NAME: authentik
     volumes:
       - ./media:/media
       - ./custom_templates:/templates
-    environment:
-      - AUTHENTIK_SECRET_KEY={{ authentik_secret_key }}
-      - AUTHENTIK_REDIS__HOST=redis
-      - AUTHENTIK_POSTGRESQL__HOST=postgresql
-      - AUTHENTIK_POSTGRESQL__USER=authentik
-      - AUTHENTIK_POSTGRESQL__PASSWORD={{ authentik_postgres_password }}
-      - AUTHENTIK_POSTGRESQL__NAME=authentik
+      - ./certs:/certs
     ports:
-      - "9000:9000"
-      - "9443:9443"
+      - "{{ authentik_bind_address }}:9000:9000"
     depends_on:
-      - redis
-      - postgresql
-    networks:
-      - {{ service_network }}
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
-  redis:
-    image: redis:alpine
-    container_name: authentik-redis
+  worker:
+    image: ghcr.io/goauthentik/server:{{ authentik_image_version }}
+    container_name: authentik-worker
+    command: worker
     restart: {{ authentik_restart_policy }}
+    environment:
+      AUTHENTIK_SECRET_KEY: {{ (authentik_secret_key | replace('$', '$$')) | to_json }}
+      AUTHENTIK_REDIS__HOST: redis
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__USER: authentik
+      AUTHENTIK_POSTGRESQL__PASSWORD: {{ (authentik_postgres_password | replace('$', '$$')) | to_json }}
+      AUTHENTIK_POSTGRESQL__NAME: authentik
     volumes:
-      - ./redis:/data
-    networks:
-      - {{ service_network }}
+      - ./media:/media
+      - ./custom_templates:/templates
+      - ./certs:/certs
+    depends_on:
+      postgresql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
 
   postgresql:
-    image: postgres:13
+    image: {{ authentik_postgres_image }}
     container_name: authentik-postgresql
     restart: {{ authentik_restart_policy }}
-    volumes:
-      - ./postgresql:/var/lib/postgresql/data
     environment:
-      - POSTGRES_USER=authentik
-      - POSTGRES_PASSWORD={{ authentik_postgres_password }}
-      - POSTGRES_DB=authentik
-    networks:
-      - {{ service_network }}
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: {{ (authentik_postgres_password | replace('$', '$$')) | to_json }}
+      POSTGRES_DB: authentik
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d authentik -U authentik"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
-networks:
-  {{ service_network }}:
-    external: true
+  redis:
+    image: {{ authentik_redis_image }}
+    container_name: authentik-redis
+    restart: {{ authentik_restart_policy }}
+    command: --save 60 1 --loglevel warning
+    volumes:
+      - ./redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 3s
+      retries: 5

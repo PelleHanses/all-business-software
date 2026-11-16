@@ -1,9 +1,16 @@
-# Defaults for common role
-# These can be overridden in group_vars or host_vars
-
-# Alloy configuration
-alloy_enabled: true
-alloy_config_dir: "{{ compose_dir }}/alloy"
-alloy_config_file: "{{ alloy_config_dir }}/alloy.yml"
-alloy_image_version: "{{ alloy_image_version }}"
-alloy_restart_policy: "{{ docker_compose_restart_policy }}"
+---
+common_timezone: "Europe/Stockholm"
+common_locale: "sv_SE.UTF-8"
+compose_dir: "/opt/docker/compose"
+common_packages:
+  - curl
+  - wget
+  - git
+  - vim
+  - htop
+  - net-tools
+  - unzip
+  - locales
+docker_packages:
+  - docker.io
+  - docker-compose-v2

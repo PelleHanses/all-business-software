@@ -1,0 +1,34 @@
+// Discover containers through a restricted, read-only Docker API proxy.
+discovery.docker "containers" {
+  host = "http://docker-proxy:2375"
+  refresh_interval = "15s"
+}
+
+discovery.relabel "containers" {
+  targets = []
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "/(.*)"
+    target_label = "container"
+  }
+
+  rule {
+    target_label = "host"
+    replacement = "{{ inventory_hostname }}"
+  }
+}
+
+loki.source.docker "containers" {
+  host = "http://docker-proxy:2375"
+  targets = discovery.docker.containers.targets
+  relabel_rules = discovery.relabel.containers.rules
+  labels = { "job" = "docker" }
+  forward_to = [loki.write.central.receiver]
+}
+
+loki.write "central" {
+  endpoint {
+    url = "{{ alloy_loki_url }}"
+  }
+}

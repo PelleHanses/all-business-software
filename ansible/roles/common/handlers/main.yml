@@ -1,9 +1,0 @@
-# handlers file for common
----
-- name: Restart Alloy
-  community.docker.docker_compose:
-    project_src: "{{ alloy_config_dir }}"
-    state: present
-    restarted: yes
-  become: yes
-  when: alloy_enabled

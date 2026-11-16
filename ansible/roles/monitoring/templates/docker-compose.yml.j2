@@ -1,53 +1,43 @@
-version: '3.8'
-
 services:
   prometheus:
     image: prom/prometheus:{{ prometheus_image_version }}
     container_name: prometheus
     restart: {{ monitoring_restart_policy }}
     ports:
-      - "9090:9090"
+      - "{{ monitoring_bind_address }}:9090:9090"
     volumes:
-      - ./prometheus:/etc/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - prometheus_data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    networks:
-      - {{ service_network }}
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
 
   grafana:
     image: grafana/grafana:{{ grafana_image_version }}
     container_name: grafana
     restart: {{ monitoring_restart_policy }}
     ports:
-      - "3000:3000"
+      - "{{ monitoring_bind_address }}:3000:3000"
     volumes:
       - grafana_storage:/var/lib/grafana
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD={{ grafana_admin_password }}
-    networks:
-      - {{ service_network }}
+      GF_SECURITY_ADMIN_USER: {{ grafana_admin_user | to_json }}
+      GF_SECURITY_ADMIN_PASSWORD: {{ (grafana_admin_password | replace('$', '$$')) | to_json }}
+      GF_USERS_ALLOW_SIGN_UP: "false"
 
   loki:
     image: grafana/loki:{{ loki_image_version }}
     container_name: loki
     restart: {{ monitoring_restart_policy }}
     ports:
-      - "3100:3100"
+      - "{{ monitoring_bind_address }}:3100:3100"
     command: -config.file=/etc/loki/loki.yml
     volumes:
-      - ./loki:/etc/loki
-    networks:
-      - {{ service_network }}
+      - ./loki/loki.yml:/etc/loki/loki.yml:ro
+      - loki_data:/loki
 
 volumes:
   prometheus_data:
   grafana_storage:
-
-networks:
-  {{ service_network }}:
-    external: true
+  loki_data:

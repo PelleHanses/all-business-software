@@ -1,8 +1,60 @@
-# tasks file for authentik
 ---
-- name: Deploy Authentik docker-compose.yml
-  template:
+- name: Validate required Authentik secrets
+  ansible.builtin.assert:
+    that:
+      - authentik_secret_key is defined
+      - authentik_secret_key | length >= 32
+      - authentik_postgres_password is defined
+      - authentik_postgres_password | length >= 16
+    fail_msg: "Set authentik_secret_key and authentik_postgres_password in an encrypted inventory group_vars file."
+  no_log: true
+
+- name: Create Authentik application data directories
+  ansible.builtin.file:
+    path: "{{ authentik_config_dir }}/{{ item }}"
+    state: directory
+    owner: "1000"
+    group: "1000"
+    mode: "0750"
+  loop:
+    - media
+    - custom_templates
+    - certs
+
+- name: Create Authentik PostgreSQL data directory
+  ansible.builtin.file:
+    path: "{{ authentik_config_dir }}/postgres"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Deploy Authentik Compose file
+  ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ authentik_compose_file }}"
-    mode: '0644'
+    owner: root
+    group: root
+    mode: "0600"
+  no_log: true
+  diff: false
   notify: Restart Authentik
+
+- name: Add or update Authentik Caddy site fragment
+  ansible.builtin.template:
+    src: caddy-site.caddy.j2
+    dest: "{{ hostvars['caddy-server'].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/authentik.caddy"
+    owner: root
+    group: root
+    mode: "0640"
+  delegate_to: caddy-server
+  when: authentik_caddy_enabled | bool
+  notify: Reload Caddy
+
+- name: Remove Authentik Caddy fragment when proxying is disabled
+  ansible.builtin.file:
+    path: "{{ hostvars['caddy-server'].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/authentik.caddy"
+    state: absent
+  delegate_to: caddy-server
+  when: not (authentik_caddy_enabled | bool)
+  notify: Reload Caddy

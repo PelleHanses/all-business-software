@@ -1,47 +1,26 @@
-# tasks file for alloy
 ---
-- name: Download Alloy
-  get_url:    url: "https://github.com/grafana/alloy/releases/download/v{{ alloy_version }}/alloy_{{ alloy_version }}_linux_amd64.deb"
-    dest: /tmp/alloy.deb
-    mode: '0644'
-  become: yes
-
-- name: Install Alloy
-  apt:    deb: /tmp/alloy.deb
-  become: yes
-
-- name: Ensure Alloy config directory exists
-  file:    path: /etc/alloy
+- name: Create Alloy configuration directory
+  ansible.builtin.file:
+    path: "{{ alloy_config_dir }}"
     state: directory
-    owner: "{{ monitoring_user }}"
-    group: "{{ monitoring_group }}"
-    mode: '0755'
-  become: yes
+    owner: root
+    group: root
+    mode: "0750"
 
-- name: Deploy Alloy config
-  template:    src: alloy.yml.j2
-    dest: "{{ alloy_config_path }}"
-    owner: "{{ monitoring_user }}"
-    group: "{{ monitoring_group }}"
-    mode: '0644'
-  become: yes
+- name: Deploy Alloy configuration
+  ansible.builtin.template:
+    src: config.alloy.j2
+    dest: "{{ alloy_config_dir }}/config.alloy"
+    owner: root
+    group: root
+    mode: "0640"
   notify: Restart Alloy
 
-- name: Create Alloy systemd service
-  template:    src: alloy.service.j2
-    dest: /etc/systemd/system/{{ alloy_service_name }}.service
-    mode: '0644'
-  become: yes
+- name: Deploy Alloy Compose project
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ alloy_config_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0640"
   notify: Restart Alloy
-
-- name: Ensure Alloy is running and enabled
-  service:    name: "{{ alloy_service_name }}"
-    state: started
-    enabled: yes
-  become: yes
-
-handlers:
-  - name: Restart Alloy
-    service:    name: "{{ alloy_service_name }}"
-      state: restarted
-    become: yes
