@@ -11,4 +11,4 @@ grafana_admin_user: "admin"
 prometheus_node_exporter_targets: []
 monitoring_caddy_enabled: false
 grafana_caddy_hostname: "grafana.example.com"
-grafana_caddy_upstream: "{{ hostvars['monitoring-server'].ansible_host }}:3000"
+grafana_caddy_upstream: "{{ hostvars[groups['monitoring'] | first].ansible_host }}:3000"
