@@ -1,8 +1,0 @@
-# Playbook for Caddy setup
----
-- name: Apply Caddy configuration
-  hosts: caddy
-  become: yes
-  roles:
-    - common
-    - caddy
