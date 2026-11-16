@@ -16,6 +16,9 @@ common_locale: "sv_SE.UTF-8"
 compose_dir: "/opt/docker/compose"
 docker_compose_restart_policy: "unless-stopped"
 
+# Resolve the Caddy host from inventory rather than relying on its hostname.
+caddy_host: "{{ (groups.get('caddy', []) | first) | default('') }}"
+
 # Caddy is the central reverse proxy. App roles add independent fragments.
 caddy_config_dir: "{{ compose_dir }}/caddy"
 caddy_config_file: "{{ caddy_config_dir }}/Caddyfile"
@@ -35,10 +38,10 @@ service_bind_address: "{{ ansible_host | default('127.0.0.1') }}"
 # Reverse-proxy fragments are opt-in until real DNS names are configured.
 authentik_caddy_enabled: false
 authentik_caddy_hostname: "authentik.example.com"
-authentik_caddy_upstream: "{{ hostvars['authentik-server'].ansible_host }}:9000"
+authentik_caddy_upstream: "{{ hostvars[groups['authentik'] | first].ansible_host }}:9000"
 monitoring_caddy_enabled: false
 grafana_caddy_hostname: "grafana.example.com"
-grafana_caddy_upstream: "{{ hostvars['monitoring-server'].ansible_host }}:3000"
+grafana_caddy_upstream: "{{ hostvars[groups['monitoring'] | first].ansible_host }}:3000"
 
 # Explicit Prometheus node_exporter targets.
 prometheus_node_exporter_targets: []
