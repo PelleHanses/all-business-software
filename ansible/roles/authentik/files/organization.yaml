@@ -3,35 +3,15 @@ version: 1
 metadata:
   name: mittbolag-organization
   labels:
-    blueprints.goauthentik.io/description: "Organization brand, groups and initial users for mittbolag.se"
+    blueprints.goauthentik.io/description: "Brand, groups and initial users for mittbolag.se"
 
 entries:
-  # Brand selection is based on the requested domain. Keep the built-in
-  # authentik-default brand as the instance-wide default for other domains.
   - model: authentik_brands.brand
     identifiers:
       domain: mittbolag.se
     attrs:
       branding_title: Mittbolag
       default: false
-
-  - model: authentik_core.group
-    identifiers:
-      name: users
-    attrs:
-      is_superuser: false
-
-  - model: authentik_core.group
-    identifiers:
-      name: osd
-    attrs:
-      is_superuser: false
-
-  - model: authentik_core.group
-    identifiers:
-      name: styrelsen
-    attrs:
-      is_superuser: false
 
   - model: authentik_core.user
     identifiers:
@@ -63,12 +43,11 @@ entries:
       attributes:
         phone_number: "0734234234"
 
-  # Membership is declared on the groups. !Find resolves the users by
-  # username, so the blueprint is repeatable and does not depend on DB IDs.
   - model: authentik_core.group
     identifiers:
       name: users
     attrs:
+      is_superuser: false
       users:
         - !Find [authentik_core.user, [username, "allan@mittbolag.se"]]
         - !Find [authentik_core.user, [username, "olsson@mittbolag.se"]]
@@ -78,6 +57,7 @@ entries:
     identifiers:
       name: osd
     attrs:
+      is_superuser: false
       users:
         - !Find [authentik_core.user, [username, "allan@mittbolag.se"]]
         - !Find [authentik_core.user, [username, "olsson@mittbolag.se"]]
@@ -87,6 +67,7 @@ entries:
     identifiers:
       name: styrelsen
     attrs:
+      is_superuser: false
       users:
         - !Find [authentik_core.user, [username, "allan@mittbolag.se"]]
         - !Find [authentik_core.user, [username, "greta@mittbolag.se"]]
