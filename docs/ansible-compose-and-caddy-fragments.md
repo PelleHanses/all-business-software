@@ -2,8 +2,8 @@
 
 ## Architecture
 
-- Each Proxmox LXC Docker host runs Ubuntu Server 26.04 and can host one or more independent Compose projects under `/opt/docker/compose/<project>`. Service roles can share an LXC; inventory service groups determine placement.
-- Docker Engine runs inside the LXC container. Enable Proxmox `nesting` and `keyctl` features and use a compatible cgroup v2 configuration; prefer unprivileged LXC containers.
+- Each Proxmox QEMU VM runs Ubuntu Server 26.04 and can host one or more independent Compose projects under `/opt/docker/compose/<project>`. Service roles can share a VM; inventory service groups determine placement.
+- Docker Engine and the Compose plugin run directly inside the Ubuntu VM. Use a normal QEMU VM rather than nesting Docker inside a Proxmox LXC container.
 - Prometheus, Grafana and Loki are a single monitoring stack and run together on the host in `[monitoring]`.
 - Docker Compose creates one default network per project. Services in the same project use Compose service names.
 - Services on different VMs communicate through inventory DNS/IP addresses and published host ports. There are no shared or externally-created Docker networks.
