@@ -104,7 +104,7 @@ Edit `ansible/inventory/hosts.ini`:
 - Change `ansible_ssh_private_key_file` if your key is stored elsewhere.
 - Keep every Docker VM in the `docker_hosts` group.
 
-The sample host named `docker-host-01` is just a generic Docker VM. It is not a special host for the `common` role. Rename it to match your own host if you prefer.
+The inventory contains only the three example service VMs. Add any additional Docker VM under `[docker_hosts]`; it will receive the `common` baseline and Alloy role when the relevant playbook runs. There is no dedicated common VM.
 
 ## Requirements on the Ansible control machine
 
