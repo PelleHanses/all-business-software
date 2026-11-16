@@ -14,6 +14,7 @@ entries:
       default: false
 
   - model: authentik_core.user
+    id: allan-user
     identifiers:
       username: allan@mittbolag.se
     attrs:
@@ -24,6 +25,7 @@ entries:
         phone_number: "07012234567"
 
   - model: authentik_core.user
+    id: olle-user
     identifiers:
       username: olsson@mittbolag.se
     attrs:
@@ -34,6 +36,7 @@ entries:
         phone_number: "07054435345"
 
   - model: authentik_core.user
+    id: greta-user
     identifiers:
       username: greta@mittbolag.se
     attrs:
@@ -49,9 +52,9 @@ entries:
     attrs:
       is_superuser: false
       users:
-        - !Find [authentik_core.user, [username, "allan@mittbolag.se"]]
-        - !Find [authentik_core.user, [username, "olsson@mittbolag.se"]]
-        - !Find [authentik_core.user, [username, "greta@mittbolag.se"]]
+        - !KeyOf allan-user
+        - !KeyOf olle-user
+        - !KeyOf greta-user
 
   - model: authentik_core.group
     identifiers:
