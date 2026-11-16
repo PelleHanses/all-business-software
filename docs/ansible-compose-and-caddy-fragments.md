@@ -52,10 +52,11 @@ ansible-galaxy collection install -r requirements.yml
 ansible-playbook playbooks/all.yml -l docker_hosts
 ```
 
-The `-l` limit is intentional. Use a narrower host limit for a single host, for example `-l authentik`. The example inventory uses service groups (`[caddy]`, `[authentik]`, `[monitoring]`) as well as `[docker_hosts]`. A single Docker host can belong to multiple service groups when services are consolidated. Prometheus, Grafana and Loki are deployed together on one monitoring host.
+The `-l` limit is intentional. Use a service group for a service deployment, for example `-l authentik`, or an inventory hostname when targeting a particular Docker VM. The example inventory uses service groups (`[caddy]`, `[authentik]`, `[monitoring]`) as well as `[docker_hosts]`. A single Docker host can belong to multiple service groups when services are consolidated. Prometheus, Grafana and Loki are deployed together on one monitoring host.
 
 ## Monitoring notes
 
+- The `[monitoring]` group should contain one Docker host. Prometheus, Grafana and Loki are one Compose stack deployed together on that host.
 - Prometheus scrapes itself locally inside its own container. Remote node exporters must be explicitly listed in `prometheus_node_exporter_targets`; the role does not invent `localhost:9100` targets on the Prometheus container.
 - Loki listens on the monitoring VM's private address so Alloy agents on other Docker VMs can push logs.
 - Alloy uses a separate Compose project on every Docker host. A Docker Socket Proxy is used to restrict the Docker API to read-oriented endpoints; the Docker socket remains a highly privileged interface and should be treated accordingly.
