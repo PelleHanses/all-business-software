@@ -1,0 +1,18 @@
+[Unit]
+Description=Prometheus
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ monitoring_user }}
+Group={{ monitoring_group }}
+Type=simple
+ExecStart=/usr/local/prometheus-{{ prometheus_version }}.linux-amd64/prometheus \
+  --config.file={{ prometheus_config_path }} \
+  --storage.tsdb.path=/var/lib/prometheus \
+  --web.console.libraries=/usr/local/prometheus-{{ prometheus_version }}.linux-amd64/console_libraries \
+  --web.console.templates=/usr/local/prometheus-{{ prometheus_version }}.linux-amd64/consoles
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

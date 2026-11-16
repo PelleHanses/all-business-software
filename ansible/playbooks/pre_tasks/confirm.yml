@@ -1,0 +1,12 @@
+---
+- name: Confirm running playbook
+  ansible.builtin.pause:
+    prompt: >
+      Du kommer att köra playbooken mot {{ inventory_hostname }}.
+      Skriv 'ja' för att fortsätta
+  register: _confirm
+
+- name: Abort if not confirmed
+  ansible.builtin.fail:
+    msg: "Körning avbruten av användaren"
+  when: _confirm.user_input != 'ja'

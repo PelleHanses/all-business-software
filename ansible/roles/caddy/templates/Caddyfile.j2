@@ -1,0 +1,11 @@
+{
+  email {{ caddy_admin_email }}
+}
+
+# HTTP to HTTPS redirect
+:80 {
+  redir https://{host}{uri}
+}
+
+# Include site configurations
+import {{ caddy_sites_dir }}/*

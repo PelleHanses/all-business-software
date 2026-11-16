@@ -1,0 +1,6 @@
+---
+- name: Verify -l-argument is set
+  fail:
+    msg: "❌ Denna playbook får inte köras utan -l-argument (t.ex. -l qa eller -l prod)"
+  run_once: true
+  when: ansible_limit is not defined

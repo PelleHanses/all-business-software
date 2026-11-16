@@ -1,0 +1,14 @@
+# Defaults for caddy role
+# These can be overridden in group_vars or host_vars
+
+# Caddy configuration
+caddy_config_dir: "{{ compose_dir }}/caddy"
+caddy_config_file: "{{ caddy_config_dir }}/Caddyfile"
+caddy_image_version: "{{ caddy_image_version }}"
+caddy_restart_policy: "{{ docker_compose_restart_policy }}"
+
+# Caddy sites directory for fragments
+caddy_sites_dir: "{{ caddy_config_dir }}/sites"
+
+# Default Caddy admin email
+caddy_admin_email: "admin@example.com"

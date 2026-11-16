@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  alloy:
+    image: grafana/alloy:{{ alloy_image_version }}
+    container_name: alloy
+    restart: {{ alloy_restart_policy }}
+    ports:
+      - "12345:12345"
+    volumes:
+      - {{ alloy_config_file }}:/etc/alloy/alloy.yml
+    command: -config.file=/etc/alloy/alloy.yml
+    networks:
+      - {{ service_network }}
+
+networks:
+  {{ service_network }}:
+    external: true

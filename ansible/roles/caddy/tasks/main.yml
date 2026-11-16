@@ -1,0 +1,22 @@
+# tasks file for caddy
+---
+- name: Create Caddy sites directory
+  file:
+    path: "{{ caddy_sites_dir }}"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Deploy Caddy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ caddy_config_dir }}/docker-compose.yml"
+    mode: '0644'
+  notify: Restart Caddy
+
+- name: Deploy Caddyfile
+  template:
+    src: Caddyfile.j2
+    dest: "{{ caddy_config_file }}"
+    mode: '0644'
+  notify: Restart Caddy

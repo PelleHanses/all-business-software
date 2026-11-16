@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  authentik:
+    image: ghcr.io/goauthentik/server:{{ authentik_image_version }}
+    container_name: authentik
+    restart: {{ authentik_restart_policy }}
+    volumes:
+      - ./media:/media
+      - ./custom_templates:/templates
+    environment:
+      - AUTHENTIK_SECRET_KEY={{ authentik_secret_key }}
+      - AUTHENTIK_REDIS__HOST=redis
+      - AUTHENTIK_POSTGRESQL__HOST=postgresql
+      - AUTHENTIK_POSTGRESQL__USER=authentik
+      - AUTHENTIK_POSTGRESQL__PASSWORD={{ authentik_postgres_password }}
+      - AUTHENTIK_POSTGRESQL__NAME=authentik
+    ports:
+      - "9000:9000"
+      - "9443:9443"
+    depends_on:
+      - redis
+      - postgresql
+    networks:
+      - {{ service_network }}
+
+  redis:
+    image: redis:alpine
+    container_name: authentik-redis
+    restart: {{ authentik_restart_policy }}
+    volumes:
+      - ./redis:/data
+    networks:
+      - {{ service_network }}
+
+  postgresql:
+    image: postgres:13
+    container_name: authentik-postgresql
+    restart: {{ authentik_restart_policy }}
+    volumes:
+      - ./postgresql:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=authentik
+      - POSTGRES_PASSWORD={{ authentik_postgres_password }}
+      - POSTGRES_DB=authentik
+    networks:
+      - {{ service_network }}
+
+networks:
+  {{ service_network }}:
+    external: true

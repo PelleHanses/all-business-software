@@ -1,0 +1,41 @@
+# Playbook to deploy all services
+---
+- name: Deploy all services
+  hosts: docker_hosts
+  become: yes
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+    - ansible.builtin.include_tasks: pre_tasks/confirm.yml
+  roles:
+    - common
+
+- name: Deploy Caddy
+  hosts: caddy-server
+  become: yes
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+    - ansible.builtin.include_tasks: pre_tasks/confirm.yml
+  roles:
+    - caddy
+
+- name: Deploy Authentik
+  hosts: authentik-server
+  become: yes
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+    - ansible.builtin.include_tasks: pre_tasks/confirm.yml
+  roles:
+    - authentik
+
+- name: Deploy Monitoring
+  hosts: monitoring-server
+  become: yes
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+    - ansible.builtin.include_tasks: pre_tasks/confirm.yml
+  roles:
+    - monitoring

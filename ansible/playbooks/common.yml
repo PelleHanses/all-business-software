@@ -1,0 +1,11 @@
+# Playbook for common setup
+---
+- name: Apply common configuration
+  hosts: docker_hosts
+  become: yes
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+    - ansible.builtin.include_tasks: pre_tasks/confirm.yml
+  roles:
+    - common

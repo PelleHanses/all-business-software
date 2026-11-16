@@ -1,0 +1,14 @@
+[Unit]
+Description=Alloy
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User={{ monitoring_user }}
+Group={{ monitoring_group }}
+Type=simple
+ExecStart=/usr/bin/alloy -config.file={{ alloy_config_path }}
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

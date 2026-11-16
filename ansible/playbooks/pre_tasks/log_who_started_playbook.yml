@@ -1,0 +1,4 @@
+---
+- name: Log who started the playbook
+  debug:
+    msg: "Playbook triggered by {{ lookup('env','USER') }}"
