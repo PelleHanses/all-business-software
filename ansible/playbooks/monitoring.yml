@@ -1,0 +1,8 @@
+# Playbook for monitoring setup
+---
+- name: Apply monitoring configuration
+  hosts: monitoring
+  become: yes
+  roles:
+    - common
+    - monitoring

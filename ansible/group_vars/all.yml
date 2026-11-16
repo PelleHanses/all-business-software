@@ -1,0 +1,44 @@
+# Global variables
+ansible_user: admin
+ansible_ssh_private_key_file: ~/.ssh/id_rsa
+ansible_python_interpreter: /usr/bin/python3
+
+# Common variables
+common_timezone: "Europe/Stockholm"
+common_locale: "sv_SE.UTF-8"
+common_hostname: "common-server"
+
+# Caddy variables
+caddy_version: "2.6.4"
+caddy_config_path: "/etc/caddy/Caddyfile"
+caddy_service_name: "caddy"
+
+# Authentik variables
+authentik_version: "2023.10.1"
+authentik_config_path: "/opt/authentik"
+authentik_service_name: "authentik"
+
+# Monitoring variables
+monitoring_user: "monitoring"
+monitoring_group: "monitoring"
+monitoring_home: "/opt/monitoring"
+
+# Prometheus variables
+prometheus_version: "2.47.0"
+prometheus_config_path: "/etc/prometheus/prometheus.yml"
+prometheus_service_name: "prometheus"
+
+# Grafana variables
+grafana_version: "10.2.0"
+grafana_config_path: "/etc/grafana/grafana.ini"
+grafana_service_name: "grafana-server"
+
+# Loki variables
+loki_version: "2.9.0"
+loki_config_path: "/etc/loki/loki.yml"
+loki_service_name: "loki"
+
+# Alloy variables
+alloy_version: "1.0.0"
+alloy_config_path: "/etc/alloy/alloy.yml"
+alloy_service_name: "alloy"

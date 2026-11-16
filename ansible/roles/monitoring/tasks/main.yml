@@ -1,0 +1,30 @@
+# tasks file for monitoring
+---
+- name: Create monitoring user and group
+  user:    name: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    system: yes
+    shell: /bin/false
+    home: "{{ monitoring_home }}"
+    create_home: yes
+  become: yes
+
+- name: Ensure monitoring directory exists
+  file:    path: "{{ monitoring_home }}"
+    state: directory
+    owner: "{{ monitoring_user }}"
+    group: "{{ monitoring_group }}"
+    mode: '0755'
+  become: yes
+
+- name: Include Prometheus role
+  include_role:    name: prometheus
+
+- name: Include Grafana role
+  include_role:    name: grafana
+
+- name: Include Loki role
+  include_role:    name: loki
+
+- name: Include Alloy role
+  include_role:    name: alloy

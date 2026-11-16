@@ -1,0 +1,39 @@
+# tasks file for common
+---
+- name: Update apt cache
+  apt:    update_cache: yes
+  become: yes
+
+- name: Install common packages
+  apt:    name:      - curl
+      - wget
+      - git
+      - vim
+      - htop
+      - net-tools
+      - unzip
+      - software-properties-common
+    state: present
+  become: yes
+
+- name: Set timezone
+  timezone:    name: "{{ common_timezone }}"
+  become: yes
+
+- name: Set locale
+  locale_gen:    name: "{{ common_locale }}"
+    state: present
+  become: yes
+
+- name: Set hostname
+  hostname:    name: "{{ common_hostname }}"
+  become: yes
+
+- name: Reboot if necessary
+  reboot:    msg: "Reboot initiated by Ansible"
+    connect_timeout: 5
+    reboot_timeout: 600
+    pre_reboot_delay: 0
+    post_reboot_delay: 30
+  become: yes
+  when: ansible_facts['hostname'] != common_hostname

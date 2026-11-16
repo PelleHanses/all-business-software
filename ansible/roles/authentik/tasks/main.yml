@@ -1,0 +1,37 @@
+# tasks file for authentik
+---
+- name: Install Docker
+  apt:    name:      - docker.io
+      - docker-compose
+    state: present
+  become: yes
+
+- name: Ensure Docker is running
+  service:    name: docker
+    state: started
+    enabled: yes
+  become: yes
+
+- name: Ensure authentik directory exists
+  file:    path: "{{ authentik_config_path }}"
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Deploy authentik docker-compose.yml
+  template:    src: docker-compose.yml.j2
+    dest: "{{ authentik_config_path }}/docker-compose.yml"
+    mode: '0644'
+  become: yes
+  notify: Restart Authentik
+
+- name: Start Authentik
+  community.docker.docker_compose:    project_src: "{{ authentik_config_path }}"
+    state: present
+  become: yes
+
+handlers:
+  - name: Restart Authentik
+    community.docker.docker_compose:      project_src: "{{ authentik_config_path }}"
+      state: restarted
+    become: yes

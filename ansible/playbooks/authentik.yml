@@ -1,0 +1,8 @@
+# Playbook for Authentik setup
+---
+- name: Apply Authentik configuration
+  hosts: authentik
+  become: yes
+  roles:
+    - common
+    - authentik

@@ -1,0 +1,19 @@
+[server]
+http_port = 3000
+host = 0.0.0.0
+
+[database]
+type = sqlite3
+path = /var/lib/grafana/grafana.db
+
+[security]
+admin_user = admin
+admin_password = your-admin-password-here
+
+[auth.anonymous]
+enabled = true
+
+[paths]
+logs = /var/log/grafana
+plugins = /var/lib/grafana/plugins
+provisioning = /etc/grafana/provisioning
