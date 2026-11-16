@@ -1,3 +1,5 @@
+> **Historiskt designunderlag – inte en beskrivning av den aktuella implementationen.** Katalogstruktur, inventarie, playbooks och roller i denna fil har avvikit från repots nuvarande kod. Följ i stället [README.md](../README.md) och [Compose/Caddy-guiden](ansible-compose-and-caddy-fragments.md) för aktuella instruktioner. Den här filen sparas endast som tidigare arkitekturanteckningar.
+
 # Ansible-struktur för serverhallen
 
 Ett repo, en roll per tjänst, komponerbara playbooks. Allt följer Ansible-standard: rollens egna `templates/`, `defaults/`, `handlers/`, `tasks/`. Caddy-sites genereras av varje tjänsteroll som fragment som Caddy-rollen samlar in.
