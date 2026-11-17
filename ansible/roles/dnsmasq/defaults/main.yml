@@ -1,0 +1,27 @@
+---
+dnsmasq_package_state: present
+dnsmasq_service_enabled: true
+dnsmasq_config_dir: /etc/dnsmasq.d
+dnsmasq_config_file: "{{ dnsmasq_config_dir }}/ansible-managed.conf"
+
+# DNS is enabled by default. DHCP is deliberately opt-in to avoid starting a
+# second DHCP server accidentally on an existing LAN.
+dnsmasq_domain: "home.arpa"
+dnsmasq_listen_addresses:
+  - "{{ ansible_host }}"
+dnsmasq_upstream_servers:
+  - "1.1.1.1"
+  - "9.9.9.9"
+dnsmasq_dns_records: []
+dnsmasq_cname_records: []
+dnsmasq_dhcp_enabled: false
+dnsmasq_dhcp_interface: ""
+dnsmasq_dhcp_range_start: ""
+dnsmasq_dhcp_range_end: ""
+dnsmasq_dhcp_netmask: ""
+dnsmasq_dhcp_router: ""
+dnsmasq_dhcp_lease_time: "12h"
+dnsmasq_dhcp_dns_servers:
+  - "{{ ansible_host }}"
+dnsmasq_dhcp_domain: "{{ dnsmasq_domain }}"
+dnsmasq_dhcp_reservations: []

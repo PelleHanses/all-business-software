@@ -1,0 +1,51 @@
+---
+- name: Validate dnsmasq DNS configuration
+  ansible.builtin.assert:
+    that:
+      - dnsmasq_domain | length > 0
+      - dnsmasq_listen_addresses | length > 0
+      - dnsmasq_upstream_servers | length > 0
+    fail_msg: "dnsmasq_domain, dnsmasq_listen_addresses and dnsmasq_upstream_servers must be configured."
+
+- name: Validate DHCP configuration when enabled
+  ansible.builtin.assert:
+    that:
+      - dnsmasq_dhcp_interface | length > 0
+      - dnsmasq_dhcp_range_start | length > 0
+      - dnsmasq_dhcp_range_end | length > 0
+      - dnsmasq_dhcp_netmask | length > 0
+      - dnsmasq_dhcp_router | length > 0
+      - dnsmasq_dhcp_dns_servers | length > 0
+    fail_msg: "DHCP is enabled but its interface, range, netmask, router or DNS servers are missing."
+  when: dnsmasq_dhcp_enabled | bool
+
+- name: Install dnsmasq
+  ansible.builtin.apt:
+    name: dnsmasq
+    state: "{{ dnsmasq_package_state }}"
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Ensure dnsmasq configuration directory exists
+  ansible.builtin.file:
+    path: "{{ dnsmasq_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure dnsmasq DNS and optional DHCP
+  ansible.builtin.template:
+    src: ansible-managed.conf.j2
+    dest: "{{ dnsmasq_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "dnsmasq --test --conf-file=%s"
+  notify: Restart dnsmasq
+
+- name: Ensure dnsmasq is enabled and running
+  ansible.builtin.service:
+    name: dnsmasq
+    state: started
+    enabled: "{{ dnsmasq_service_enabled }}"

@@ -1,0 +1,14 @@
+---
+nextcloud_aio_config_dir: "{{ compose_dir }}/nextcloud-aio"
+nextcloud_aio_image: "ghcr.io/nextcloud-releases/all-in-one:latest"
+nextcloud_aio_mastercontainer_name: nextcloud-aio-mastercontainer
+nextcloud_aio_restart_policy: always
+nextcloud_aio_domain: "cloud.example.com"
+nextcloud_aio_apache_port: 11000
+nextcloud_aio_admin_bind_address: "127.0.0.1"
+nextcloud_aio_apache_bind_address: "{{ ansible_host }}"
+nextcloud_aio_skip_domain_validation: false
+nextcloud_aio_caddy_enabled: false
+nextcloud_aio_caddy_hostname: "{{ nextcloud_aio_domain }}"
+nextcloud_aio_caddy_upstream: "{{ ansible_host }}:{{ nextcloud_aio_apache_port }}"
+nextcloud_aio_mastercontainer_volume: nextcloud_aio_mastercontainer

@@ -6,3 +6,8 @@ caddy_image_version: "2.11.9-alpine"
 caddy_restart_policy: "{{ docker_compose_restart_policy }}"
 caddy_admin_email: "admin@example.com"
 caddy_bind_address: "{{ service_bind_address }}"
+
+# Optional generic PHP-FPM service, sharing the Caddy Compose network and web root.
+caddy_php_fpm_enabled: true
+caddy_php_fpm_image: "php:8.4-fpm-alpine"
+caddy_php_root_dir: "{{ caddy_config_dir }}/www"

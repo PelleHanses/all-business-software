@@ -12,6 +12,18 @@ services:
       - {{ caddy_sites_dir }}:/etc/caddy/sites:ro
       - caddy_data:/data
       - caddy_config:/config
+{% if caddy_php_fpm_enabled | bool %}
+    depends_on:
+      - php-fpm
+{% endif %}
+
+{% if caddy_php_fpm_enabled | bool %}
+  php-fpm:
+    image: {{ caddy_php_fpm_image }}
+    restart: {{ caddy_restart_policy }}
+    volumes:
+      - {{ caddy_php_root_dir }}:/srv
+{% endif %}
 
 volumes:
   caddy_data:

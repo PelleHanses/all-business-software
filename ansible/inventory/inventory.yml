@@ -31,3 +31,10 @@ all:
     observability:
       hosts:
         monitoring-01:
+
+    # Add the dedicated Ubuntu VM(s) here before deploying these services.
+    dnsmasq:
+      hosts: {}
+
+    nextcloud_aio:
+      hosts: {}
