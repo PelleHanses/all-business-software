@@ -10,6 +10,9 @@ services:
     volumes:
       - {{ caddy_config_file }}:/etc/caddy/Caddyfile:ro
       - {{ caddy_sites_dir }}:/etc/caddy/sites:ro
+{% if caddy_php_fpm_enabled | bool %}
+      - {{ caddy_php_root_dir }}:/srv:ro
+{% endif %}
       - caddy_data:/data
       - caddy_config:/config
 {% if caddy_php_fpm_enabled | bool %}
