@@ -6,7 +6,6 @@ services:
     restart: "{{ nextcloud_aio_restart_policy }}"
     ports:
       - "{{ nextcloud_aio_admin_bind_address }}:8080:8080"
-      - "{{ nextcloud_aio_apache_bind_address }}:{{ nextcloud_aio_apache_port }}:{{ nextcloud_aio_apache_port }}"
     environment:
       APACHE_PORT: "{{ nextcloud_aio_apache_port }}"
       APACHE_IP_BINDING: "{{ nextcloud_aio_apache_bind_address }}"

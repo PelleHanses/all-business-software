@@ -1,10 +1,4 @@
 ---
-- name: Apply Nextcloud AIO Compose project
-  community.docker.docker_compose_v2:
-    project_src: "{{ nextcloud_aio_config_dir }}"
-    state: present
-    pull: always
-
 - name: Reload Caddy for Nextcloud AIO
   ansible.builtin.command:
     cmd: docker exec caddy caddy reload --config /etc/caddy/Caddyfile

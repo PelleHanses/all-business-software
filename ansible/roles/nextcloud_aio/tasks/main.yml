@@ -24,7 +24,12 @@
     owner: root
     group: root
     mode: "0600"
-  notify: Apply Nextcloud AIO Compose project
+
+- name: Ensure Nextcloud AIO mastercontainer is running
+  community.docker.docker_compose_v2:
+    project_src: "{{ nextcloud_aio_config_dir }}"
+    state: present
+    pull: always
 
 - name: Add or update Nextcloud AIO Caddy fragment
   ansible.builtin.template:
