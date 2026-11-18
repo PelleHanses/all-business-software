@@ -11,6 +11,14 @@
     state: present
   become: true
 
+- name: Ensure the Ansible administration account has an interactive login shell
+  ansible.builtin.user:
+    name: "{{ common_admin_user }}"
+    shell: "{{ common_admin_shell }}"
+    create_home: true
+    state: present
+  become: true
+
 - name: Ensure Docker is running
   ansible.builtin.service:
     name: docker
