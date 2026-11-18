@@ -3,8 +3,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0750"
   loop:
     - "{{ caddy_config_dir }}"
@@ -14,8 +14,8 @@
   ansible.builtin.file:
     path: "{{ caddy_php_root_dir }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0755"
   when: caddy_php_fpm_enabled | bool
 
@@ -23,8 +23,8 @@
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ caddy_config_dir }}/docker-compose.yml"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0600"
   notify: Restart Caddy
 
@@ -32,7 +32,7 @@
   ansible.builtin.template:
     src: Caddyfile.j2
     dest: "{{ caddy_config_file }}"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0640"
   notify: Restart Caddy
