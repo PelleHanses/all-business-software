@@ -15,6 +15,15 @@
     group: "{{ docker_compose_group }}"
     mode: "0750"
 
+- name: Grant Alloy container UID access to persistent data directory
+  ansible.builtin.command:
+    argv:
+      - setfacl
+      - -m
+      - "u:473:rwx,d:u:473:rwx"
+      - "{{ alloy_config_dir }}/data"
+  changed_when: false
+
 - name: Deploy Alloy configuration
   ansible.builtin.template:
     src: config.alloy.j2
