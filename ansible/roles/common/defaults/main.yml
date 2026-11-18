@@ -1,7 +1,7 @@
 ---
 common_timezone: "Europe/Stockholm"
 common_locale: "sv_SE.UTF-8"
-compose_dir: "/opt/docker/compose"
+compose_dir: "/opt"
 common_admin_user: "{{ ansible_user | default('ansible') }}"
 common_admin_shell: "/bin/bash"
 common_packages:
@@ -16,3 +16,6 @@ common_packages:
 docker_packages:
   - docker.io
   - docker-compose-v2
+docker_compose_owner: "{{ ansible_user | default('ansible') }}"
+docker_compose_group: "{{ ansible_user | default('ansible') }}"
+docker_compose_restart_policy: unless-stopped
