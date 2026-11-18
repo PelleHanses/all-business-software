@@ -17,6 +17,14 @@
     group: "{{ docker_compose_group }}"
     mode: "0750"
 
+- name: Create Nextcloud AIO persistent data directory
+  ansible.builtin.file:
+    path: "{{ nextcloud_aio_config_dir }}/data"
+    state: directory
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
+    mode: "0750"
+
 - name: Deploy Nextcloud AIO Compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
