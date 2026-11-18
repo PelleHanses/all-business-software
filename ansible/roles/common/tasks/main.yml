@@ -25,6 +25,7 @@
     groups: docker
     append: true
   become: true
+  notify: Reset SSH connection after Docker group change
 
 - name: Ensure Docker is running and enabled at boot
   ansible.builtin.service:
