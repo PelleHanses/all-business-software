@@ -3,7 +3,6 @@
   community.docker.docker_compose_v2:
     project_src: "{{ authentik_config_dir }}"
     state: present
-  become: true
 
 - name: Reload Caddy after Authentik fragment update
   ansible.builtin.command:
