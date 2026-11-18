@@ -7,7 +7,7 @@ services:
       - "{{ monitoring_bind_address }}:9090:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
+      - ./prometheus/data:/prometheus
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -20,7 +20,7 @@ services:
     ports:
       - "{{ monitoring_bind_address }}:3000:3000"
     volumes:
-      - grafana_storage:/var/lib/grafana
+      - ./grafana/data:/var/lib/grafana
     environment:
       GF_SECURITY_ADMIN_USER: {{ grafana_admin_user | to_json }}
       GF_SECURITY_ADMIN_PASSWORD: {{ (grafana_admin_password | replace('$', '$$')) | to_json }}
@@ -35,9 +35,4 @@ services:
     command: -config.file=/etc/loki/loki.yml
     volumes:
       - ./loki/loki.yml:/etc/loki/loki.yml:ro
-      - loki_data:/loki
-
-volumes:
-  prometheus_data:
-  grafana_storage:
-  loki_data:
+      - ./loki/data:/loki
