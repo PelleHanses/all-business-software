@@ -53,8 +53,8 @@ flowchart TD
 | Webserver                | Caddy + PHP-FPM                         | Caddy klarar PHP via `php_fastcgi`; JS är statiskt. Kör PHP-FPM som container                                           |
 | VPN                      | Headscale                               | Stödjer OIDC mot Authentik.                                                                                             |
 | Surfproxy                | e2guardian → Squid                      | e2guardian som filter framför Squid som cache; policy för vilka nät som tvingas genom proxyn                            |
-| DNS                      | Unbound                                 | Rekursiv resolver + lokal zonfil. Kör i container eller på OPNsense                                                     |
-| DHCP                     | dnsmasq ×2                              | Primär + sekundär med fördröjd svarstid (`dhcp-reply-delay`). Låt Unbound sköta DNS så dnsmasq bara gör DHCP            |
+| DNS                      | dnsmasq x2 (samma som DHCP)             | Rekursiv resolver + lokal zonfil. Unbound läggs till om behovet uppstår                                                 |
+| DHCP                     | dnsmasq ×2 (samma som DNS)              | Primär + sekundär med fördröjd svarstid (`dhcp-reply-delay`). Låt Unbound sköta DNS så dnsmasq bara gör DHCP            |
 | Mätvärden                | Prometheus                              | Med exporters (node\_exporter, cAdvisor, blackbox)                                                                      |
 | Visualisering/alertering | Grafana + Alertmanager                  | Grafana är bara visualisering – larmlogiken ligger i Alertmanager (eller Grafana Alerting). Notifiering via mail/Slack  |
 | Loggar                   | Loki                                    | Central loggning från containrar och OPNsense                                                                           |
