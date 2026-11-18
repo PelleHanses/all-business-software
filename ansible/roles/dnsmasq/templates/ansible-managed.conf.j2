@@ -10,6 +10,10 @@ domain={{ dnsmasq_domain }}
 local=/{{ dnsmasq_domain }}/
 expand-hosts
 
+# Persist DHCP leases on the Docker host under /opt/dnsmasq/data.
+dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+log-facility=-
+
 {% for server in dnsmasq_upstream_servers %}
 server={{ server }}
 {% endfor %}
