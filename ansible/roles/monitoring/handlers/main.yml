@@ -3,7 +3,6 @@
   community.docker.docker_compose_v2:
     project_src: "{{ monitoring_config_dir }}"
     state: present
-  become: true
 
 - name: Reload Caddy after Grafana fragment update
   ansible.builtin.command:
