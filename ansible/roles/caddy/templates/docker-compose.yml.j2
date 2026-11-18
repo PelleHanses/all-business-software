@@ -13,8 +13,8 @@ services:
 {% if caddy_php_fpm_enabled | bool %}
       - {{ caddy_php_root_dir }}:/srv:ro
 {% endif %}
-      - caddy_data:/data
-      - caddy_config:/config
+      - ./data:/data
+      - ./config:/config
 {% if caddy_php_fpm_enabled | bool %}
     depends_on:
       - php-fpm
@@ -28,6 +28,3 @@ services:
       - {{ caddy_php_root_dir }}:/srv
 {% endif %}
 
-volumes:
-  caddy_data:
-  caddy_config:
