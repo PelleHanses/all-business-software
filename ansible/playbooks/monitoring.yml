@@ -1,7 +1,7 @@
 ---
 - name: Configure monitoring
   hosts: monitoring
-  become: true
+  become: false
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
