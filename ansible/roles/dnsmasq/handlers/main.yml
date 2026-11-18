@@ -1,5 +1,5 @@
 ---
 - name: Restart dnsmasq
-  ansible.builtin.service:
-    name: dnsmasq
+  community.docker.docker_compose_v2:
+    project_src: "{{ dnsmasq_config_dir }}"
     state: restarted
