@@ -43,6 +43,7 @@
     - media
     - custom_templates
     - certs
+    - redis/data
 
 - name: Create Authentik PostgreSQL data directory
   ansible.builtin.file:
