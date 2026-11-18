@@ -7,6 +7,14 @@
     group: "{{ docker_compose_group }}"
     mode: "0750"
 
+- name: Create Alloy persistent data directory
+  ansible.builtin.file:
+    path: "{{ alloy_config_dir }}/data"
+    state: directory
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
+    mode: "0750"
+
 - name: Deploy Alloy configuration
   ansible.builtin.template:
     src: config.alloy.j2
