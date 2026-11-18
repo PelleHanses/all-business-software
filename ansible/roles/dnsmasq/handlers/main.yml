@@ -2,4 +2,4 @@
 - name: Restart dnsmasq
   community.docker.docker_compose_v2:
     project_src: "{{ dnsmasq_config_dir }}"
-    state: restarted
+    state: present
