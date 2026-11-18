@@ -40,7 +40,7 @@ For unattended deployments (for example from a Forgejo runner), the example belo
 Log in using an existing administrator account and run:
 
 ```bash
-sudo adduser --disabled-password --gecos "" ansible
+sudo adduser --disabled-password --gecos "" --shell /bin/bash ansible
 sudo install -d -m 0700 -o ansible -g ansible /home/ansible/.ssh
 ```
 
@@ -52,7 +52,9 @@ sudo chmod 0440 /etc/sudoers.d/ansible
 sudo visudo -cf /etc/sudoers.d/ansible
 ```
 
-Do this in **each** target Ubuntu VM. If the account already exists, check its home directory and sudo configuration rather than creating it again.
+Do this in **each** target Ubuntu VM. The `--shell /bin/bash` option ensures that SSH logins open a normal interactive Bash shell. If the account already exists, check its home directory and sudo configuration, and set its shell explicitly with `sudo usermod --shell /bin/bash ansible`.
+
+The `common` Ansible role also enforces `/bin/bash` for the inventory SSH account on every Docker host, so an existing account is corrected automatically when the baseline runs.
 
 ### 2. Create an SSH key on the Ansible control machine
 
