@@ -9,6 +9,8 @@
   loop:
     - "{{ caddy_config_dir }}"
     - "{{ caddy_sites_dir }}"
+    - "{{ caddy_config_dir }}/data"
+    - "{{ caddy_config_dir }}/config"
 
 - name: Create shared PHP document root
   ansible.builtin.file:
