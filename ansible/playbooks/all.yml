@@ -1,7 +1,7 @@
 ---
 - name: Prepare all Docker hosts
   hosts: docker_hosts
-  become: true
+  become: false
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
@@ -13,7 +13,7 @@
 
 - name: Deploy Caddy
   hosts: caddy
-  become: true
+  become: false
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
   roles:
@@ -23,7 +23,7 @@
 
 - name: Deploy Authentik
   hosts: authentik
-  become: true
+  become: false
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
   roles:
@@ -33,7 +33,7 @@
 
 - name: Deploy Monitoring
   hosts: monitoring
-  become: true
+  become: false
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
   roles:
@@ -53,7 +53,7 @@
 
 - name: Deploy Nextcloud AIO
   hosts: nextcloud_aio
-  become: true
+  become: false
   pre_tasks:
     - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
   roles:
