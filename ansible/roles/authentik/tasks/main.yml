@@ -20,24 +20,24 @@
   ansible.builtin.file:
     path: "{{ authentik_config_dir }}/blueprints"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0755"
 
 - name: Deploy organization Authentik blueprint
   ansible.builtin.copy:
     src: organization.yaml
     dest: "{{ authentik_config_dir }}/blueprints/organization.yaml"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0644"
 
 - name: Create Authentik application data directories
   ansible.builtin.file:
     path: "{{ authentik_config_dir }}/{{ item }}"
     state: directory
-    owner: "1000"
-    group: "1000"
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0750"
   loop:
     - media
@@ -48,16 +48,16 @@
   ansible.builtin.file:
     path: "{{ authentik_config_dir }}/postgres"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0700"
 
 - name: Deploy Authentik Compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ authentik_compose_file }}"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0600"
   no_log: true
   diff: false
@@ -67,8 +67,8 @@
   ansible.builtin.template:
     src: caddy-site.caddy.j2
     dest: "{{ hostvars[caddy_host].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/authentik.caddy"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0640"
   delegate_to: "{{ caddy_host }}"
   when: authentik_caddy_enabled | bool
