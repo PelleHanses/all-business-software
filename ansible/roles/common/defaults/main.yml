@@ -2,6 +2,8 @@
 common_timezone: "Europe/Stockholm"
 common_locale: "sv_SE.UTF-8"
 compose_dir: "/opt/docker/compose"
+common_admin_user: "{{ ansible_user | default('ansible') }}"
+common_admin_shell: "/bin/bash"
 common_packages:
   - curl
   - wget
