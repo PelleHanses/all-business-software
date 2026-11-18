@@ -13,6 +13,7 @@ common_packages:
   - net-tools
   - unzip
   - locales
+  - acl
 docker_packages:
   - docker.io
   - docker-compose-v2
