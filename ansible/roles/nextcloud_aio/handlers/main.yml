@@ -1,0 +1,6 @@
+---
+- name: Reload Caddy for Nextcloud AIO
+  ansible.builtin.command:
+    cmd: docker exec caddy caddy reload --config /etc/caddy/Caddyfile
+  delegate_to: "{{ caddy_host }}"
+  changed_when: true

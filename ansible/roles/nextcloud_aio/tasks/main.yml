@@ -1,0 +1,53 @@
+---
+- name: Validate Nextcloud AIO configuration
+  ansible.builtin.assert:
+    that:
+      - nextcloud_aio_domain | length > 0
+      - nextcloud_aio_apache_port | int > 0
+      - nextcloud_aio_admin_bind_address | length > 0
+      - nextcloud_aio_apache_bind_address | length > 0
+      - not (nextcloud_aio_caddy_enabled | bool) or groups.get('caddy', []) | length > 0
+    fail_msg: "Set a real Nextcloud domain, bind addresses and a Caddy host when proxy integration is enabled."
+
+- name: Create Nextcloud AIO project directory
+  ansible.builtin.file:
+    path: "{{ nextcloud_aio_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+
+- name: Deploy Nextcloud AIO Compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ nextcloud_aio_config_dir }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Ensure Nextcloud AIO mastercontainer is running
+  community.docker.docker_compose_v2:
+    project_src: "{{ nextcloud_aio_config_dir }}"
+    state: present
+    pull: always
+
+- name: Add or update Nextcloud AIO Caddy fragment
+  ansible.builtin.template:
+    src: nextcloud.caddy.j2
+    dest: "{{ hostvars[caddy_host].caddy_sites_dir }}/nextcloud.caddy"
+    owner: root
+    group: root
+    mode: "0640"
+  delegate_to: "{{ caddy_host }}"
+  when: nextcloud_aio_caddy_enabled | bool
+  notify: Reload Caddy for Nextcloud AIO
+
+- name: Remove Nextcloud AIO Caddy fragment when integration is disabled
+  ansible.builtin.file:
+    path: "{{ hostvars[caddy_host].caddy_sites_dir }}/nextcloud.caddy"
+    state: absent
+  delegate_to: "{{ caddy_host }}"
+  when:
+    - not (nextcloud_aio_caddy_enabled | bool)
+    - groups.get('caddy', []) | length > 0
+  notify: Reload Caddy for Nextcloud AIO

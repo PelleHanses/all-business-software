@@ -1,0 +1,10 @@
+---
+- name: Deploy Nextcloud All-in-One
+  hosts: nextcloud_aio
+  become: true
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/log_who_started_playbook.yml
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+  roles:
+    - common
+    - nextcloud_aio

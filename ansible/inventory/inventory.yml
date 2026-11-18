@@ -1,0 +1,40 @@
+---
+all:
+  vars:
+    # Connect over SSH as this ordinary local Linux account (never as root).
+    ansible_user: ansible
+    ansible_ssh_private_key_file: ~/.ssh/id_ed25519_ansible
+    ansible_python_interpreter: /usr/bin/python3
+
+  children:
+    docker_hosts:
+      hosts:
+        caddy-01:
+          ansible_host: 192.168.1.20
+        authentik-01:
+          ansible_host: 192.168.1.30
+        monitoring-01:
+          ansible_host: 192.168.1.40
+
+    caddy:
+      hosts:
+        caddy-01:
+
+    authentik:
+      hosts:
+        authentik-01:
+
+    monitoring:
+      hosts:
+        monitoring-01:
+
+    observability:
+      hosts:
+        monitoring-01:
+
+    # Add the dedicated Ubuntu VM(s) here before deploying these services.
+    dnsmasq:
+      hosts: {}
+
+    nextcloud_aio:
+      hosts: {}

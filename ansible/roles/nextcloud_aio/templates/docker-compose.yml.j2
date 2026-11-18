@@ -1,0 +1,19 @@
+services:
+  nextcloud-aio-mastercontainer:
+    image: "{{ nextcloud_aio_image }}"
+    container_name: "{{ nextcloud_aio_mastercontainer_name }}"
+    init: true
+    restart: "{{ nextcloud_aio_restart_policy }}"
+    ports:
+      - "{{ nextcloud_aio_admin_bind_address }}:8080:8080"
+    environment:
+      APACHE_PORT: "{{ nextcloud_aio_apache_port }}"
+      APACHE_IP_BINDING: "{{ nextcloud_aio_apache_bind_address }}"
+      APACHE_ADDITIONAL_NETWORK: ""
+      SKIP_DOMAIN_VALIDATION: "{{ nextcloud_aio_skip_domain_validation | ternary('true', 'false') }}"
+    volumes:
+      - "{{ nextcloud_aio_mastercontainer_volume }}:/mnt/docker-aio-config"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  "{{ nextcloud_aio_mastercontainer_volume }}":

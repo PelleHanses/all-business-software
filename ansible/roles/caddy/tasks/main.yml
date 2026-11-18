@@ -10,6 +10,15 @@
     - "{{ caddy_config_dir }}"
     - "{{ caddy_sites_dir }}"
 
+- name: Create shared PHP document root
+  ansible.builtin.file:
+    path: "{{ caddy_php_root_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: caddy_php_fpm_enabled | bool
+
 - name: Deploy Caddy Compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2

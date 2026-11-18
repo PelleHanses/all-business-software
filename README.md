@@ -104,27 +104,32 @@ It should print `root`. This does not mean Ansible logs in as root: SSH still us
 
 ### 4. Configure the inventory
 
-Edit `ansible/inventory/hosts.ini`:
+Edit `ansible/inventory/inventory.yml`:
 
 - Replace the example IP addresses with the private IPs or resolvable DNS names of your Ubuntu VMs.
 - Change `ansible_user` if you chose a different local account name.
 - Change `ansible_ssh_private_key_file` if your key is stored elsewhere.
 - Keep every Docker VM in the `docker_hosts` group.
 
-The example has three separate VMs, but this is not a requirement. To run all services on one Docker VM, define it once in `[docker_hosts]` and add the same inventory hostname to all service groups:
+The example has three separate VMs, but this is not a requirement. To run all services on one Docker VM, define it once under `docker_hosts.hosts` and reference that same hostname in each service group's `hosts` mapping:
 
-```ini
-[docker_hosts]
-apps-01 ansible_host=192.168.1.50
+```yaml
+docker_hosts:
+  hosts:
+    apps-01:
+      ansible_host: 192.168.1.50
 
-[caddy]
-apps-01
+caddy:
+  hosts:
+    apps-01:
 
-[authentik]
-apps-01
+authentik:
+  hosts:
+    apps-01:
 
-[monitoring]
-apps-01
+monitoring:
+  hosts:
+    apps-01:
 ```
 
 To place only Caddy and Authentik together, list the same host in `[caddy]` and `[authentik]` while keeping monitoring on another host. Prometheus, Grafana and Loki are intentionally deployed together by the single `monitoring` role and Compose project.
@@ -240,3 +245,22 @@ If sudo requires a password, add `--ask-become-pass` to the command. With the re
 
 See [the Compose and Caddy fragment guide](docs/ansible-compose-and-caddy-fragments.md) for details about service networking, Caddy fragment ownership and monitoring.
 See [the Authentik Mittbolag setup](docs/authentik-mittbolag.md) for the initial users and groups, domain/DNS requirements, and per-application OIDC configuration.
+
+## Additional service roles
+
+The repository also includes:
+
+- `dnsmasq`: native Ubuntu service for internal DNS and optional DHCP. DHCP is disabled by default; configure and verify the correct network interface and DHCP range before enabling it.
+- `nextcloud_aio`: official Nextcloud All-in-One mastercontainer in a separate Docker Compose project, with an optional Caddy reverse-proxy fragment.
+- Caddy can optionally run a generic PHP-FPM container in its own Compose project. This is intended for other PHP applications, not Nextcloud AIO.
+
+Add the dedicated DNS/DHCP VM to the `dnsmasq` inventory group and the Nextcloud VM to `nextcloud_aio`. The example inventory leaves these groups empty until you assign real hosts.
+
+Deploy the new services from `ansible/`:
+
+```bash
+ansible-playbook playbooks/dnsmasq.yml --limit dnsmasq
+ansible-playbook playbooks/nextcloud_aio.yml --limit nextcloud_aio
+```
+
+See [dnsmasq and Nextcloud AIO](docs/dnsmasq-and-nextcloud-aio.md) for configuration examples, DHCP safety notes, Caddy/PHP-FPM usage and Nextcloud AIO setup.

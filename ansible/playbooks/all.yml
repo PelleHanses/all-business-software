@@ -40,3 +40,24 @@
     - monitoring
   tags:
     - monitoring
+
+- name: Configure internal DNS and optional DHCP
+  hosts: dnsmasq
+  become: true
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+  roles:
+    - dnsmasq
+  tags:
+    - dnsmasq
+
+- name: Deploy Nextcloud AIO
+  hosts: nextcloud_aio
+  become: true
+  pre_tasks:
+    - ansible.builtin.include_tasks: pre_tasks/verify_limit_arg.yml
+  roles:
+    - common
+    - nextcloud_aio
+  tags:
+    - nextcloud_aio

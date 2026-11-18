@@ -1,0 +1,37 @@
+# Managed by Ansible. Local changes will be overwritten.
+port=53
+domain-needed
+bogus-priv
+no-resolv
+strict-order
+bind-dynamic
+listen-address={{ dnsmasq_listen_addresses | join(',') }}
+domain={{ dnsmasq_domain }}
+local=/{{ dnsmasq_domain }}/
+expand-hosts
+
+{% for server in dnsmasq_upstream_servers %}
+server={{ server }}
+{% endfor %}
+
+{% for record in dnsmasq_dns_records %}
+host-record={{ record.name }},{{ record.ip }}
+{% endfor %}
+
+{% for record in dnsmasq_cname_records %}
+cname={{ record.alias }},{{ record.target }}
+{% endfor %}
+
+{% if dnsmasq_dhcp_enabled | bool %}
+# DHCP is enabled only when explicitly opted in.
+interface={{ dnsmasq_dhcp_interface }}
+except-interface=lo
+dhcp-authoritative
+dhcp-range={{ dnsmasq_dhcp_range_start }},{{ dnsmasq_dhcp_range_end }},{{ dnsmasq_dhcp_netmask }},{{ dnsmasq_dhcp_lease_time }}
+dhcp-option=option:router,{{ dnsmasq_dhcp_router }}
+dhcp-option=option:dns-server,{{ dnsmasq_dhcp_dns_servers | join(',') }}
+dhcp-option=option:domain-name,{{ dnsmasq_dhcp_domain }}
+{% for reservation in dnsmasq_dhcp_reservations %}
+dhcp-host={{ reservation.mac }},{{ reservation.ip }}{% if reservation.name is defined %},{{ reservation.name }}{% endif %}{% if reservation.lease is defined %},{{ reservation.lease }}{% endif %}
+{% endfor %}
+{% endif %}
