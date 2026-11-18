@@ -1,10 +1,12 @@
 # dnsmasq and Nextcloud AIO
 
-## dnsmasq: internal DNS and DHCP
+## dnsmasq: internal DNS and DHCP in Docker
 
-The `dnsmasq` role installs dnsmasq directly on an Ubuntu VM (not in Docker). It serves configured internal DNS records and forwards other DNS queries to the configured upstream resolvers.
+The `dnsmasq` role deploys dnsmasq as an independent Docker Compose project under `/opt/dnsmasq`. Configuration and DHCP leases are bind-mounted from that directory, so the service can be moved to another Docker VM together with its application directory and inventory settings.
 
-DHCP is deliberately disabled by default. Set `dnsmasq_dhcp_enabled: true` only after confirming that this VM is intended to be the active DHCP server for the selected network. Running two DHCP servers on one broadcast domain can hand clients conflicting network settings.
+The container uses host networking. This is intentional: DNS listens directly on the VM's configured LAN address, and DHCP discovery broadcasts must reach the service without Docker bridge/NAT interference. The container receives only the `NET_ADMIN` and `NET_RAW` capabilities required for DHCP operations. DHCP remains disabled by default; enable it only after confirming this VM is intended to be the active DHCP server for the selected network.
+
+The role stops and removes a previously host-installed dnsmasq package before deploying the container. It does not change systemd-resolved or the host's `/etc/resolv.conf`. Before first deployment, verify that no other service is listening on the configured DNS address and port 53. On Ubuntu, systemd-resolved commonly listens on 127.0.0.53; dnsmasq should bind only to the VM's LAN address, not all interfaces.
 
 Example inventory variables for a dedicated DNS/DHCP VM:
 
@@ -42,9 +44,7 @@ dnsmasq_dhcp_reservations:
 
 Use an internal DNS domain you control. If using a subdomain of a public domain (for example `lan.kullgarden.se`), make sure the public and private DNS views are intentionally designed. Do not configure a private DNS server as authoritative for a public domain unless it contains all records clients need.
 
-The DNS role listens only on the addresses listed in `dnsmasq_listen_addresses`. Ensure the VM has a stable address outside the dynamic DHCP pool. Configure firewall rules to permit UDP/TCP 53 from trusted LAN/VPN networks and UDP 67 from the intended DHCP client network. DHCP broadcasts generally do not cross routers; configure a DHCP relay if clients are on routed VLANs.
-
-The role does not change the Ubuntu host's systemd-resolved or `/etc/resolv.conf` configuration. This avoids disrupting the DNS configuration of the server itself.
+Ensure the VM has a stable address outside the dynamic DHCP pool. Configure firewall rules to permit UDP/TCP 53 from trusted LAN/VPN networks and UDP 67 from the intended DHCP client network. DHCP broadcasts generally do not cross routers; configure a DHCP relay if clients are on routed VLANs. Do not run another DHCP server on the same broadcast domain unless the arrangement is deliberate and coordinated.
 
 Deploy with:
 
