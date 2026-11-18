@@ -19,33 +19,72 @@
     fail_msg: "DHCP is enabled but its interface, range, netmask, router or DNS servers are missing."
   when: dnsmasq_dhcp_enabled | bool
 
-- name: Install dnsmasq
+- name: Stop and disable any host-installed dnsmasq service
+  ansible.builtin.systemd_service:
+    name: dnsmasq.service
+    state: stopped
+    enabled: false
+  failed_when: false
+
+- name: Remove host-installed dnsmasq package
   ansible.builtin.apt:
     name: dnsmasq
-    state: "{{ dnsmasq_package_state }}"
-    update_cache: true
-    cache_valid_time: 3600
+    state: absent
+    purge: false
+    update_cache: false
+  become: true
 
-- name: Ensure dnsmasq configuration directory exists
+- name: Create dnsmasq application and persistent data directories
   ansible.builtin.file:
-    path: "{{ dnsmasq_config_dir }}"
+    path: "{{ item }}"
     state: directory
-    owner: root
-    group: root
-    mode: "0755"
+    owner: "{{ dnsmasq_owner }}"
+    group: "{{ dnsmasq_group }}"
+    mode: "0750"
+  loop:
+    - "{{ dnsmasq_config_dir }}"
+    - "{{ dnsmasq_data_dir }}"
+  become: true
 
-- name: Configure dnsmasq DNS and optional DHCP
+- name: Deploy dnsmasq configuration
   ansible.builtin.template:
     src: ansible-managed.conf.j2
     dest: "{{ dnsmasq_config_file }}"
-    owner: root
-    group: root
-    mode: "0644"
-    validate: "dnsmasq --test --conf-file=%s"
+    owner: "{{ dnsmasq_owner }}"
+    group: "{{ dnsmasq_group }}"
+    mode: "0640"
   notify: Restart dnsmasq
+  become: true
 
-- name: Ensure dnsmasq is enabled and running
-  ansible.builtin.service:
-    name: dnsmasq
+- name: Deploy dnsmasq Compose project
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: "{{ dnsmasq_compose_file }}"
+    owner: "{{ dnsmasq_owner }}"
+    group: "{{ dnsmasq_group }}"
+    mode: "0640"
+  notify: Restart dnsmasq
+  become: true
+
+- name: Validate dnsmasq configuration inside the container image
+  community.docker.docker_container:
+    name: dnsmasq-config-check
+    image: "{{ dnsmasq_image }}"
     state: started
-    enabled: "{{ dnsmasq_service_enabled }}"
+    cleanup: true
+    network_mode: host
+    capabilities:
+      - NET_ADMIN
+      - NET_RAW
+    volumes:
+      - "{{ dnsmasq_config_file }}:/etc/dnsmasq.conf:ro"
+    entrypoint: ["/usr/sbin/dnsmasq"]
+    command: ["--test", "--conf-file=/etc/dnsmasq.conf"]
+    detach: false
+  register: dnsmasq_config_check
+  changed_when: false
+
+- name: Start dnsmasq Compose project
+  community.docker.docker_compose_v2:
+    project_src: "{{ dnsmasq_config_dir }}"
+    state: present
