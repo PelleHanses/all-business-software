@@ -33,7 +33,7 @@ The example inventory sets:
 
 Create the local `ansible` account in every target Ubuntu VM before running the playbooks. The account needs a home directory, the public SSH key in `~ansible/.ssh/authorized_keys`, and permission to use sudo. Do not enable direct SSH login as root.
 
-For unattended deployments (for example from a Forgejo runner), the example below gives this dedicated account passwordless sudo. This account is consequently highly privileged: protect its private SSH key, restrict network access to SSH, and do not reuse it for interactive administration. If you prefer sudo to require a password, omit the NOPASSWD sudoers rule and run Ansible with `--ask-become-pass`.
+For unattended deployments (for example from a Forgejo runner), the example below gives this dedicated account passwordless sudo. This account is consequently highly privileged: protect its private SSH key and restrict network access to SSH. It has an interactive Bash shell for straightforward SSH administration, but should remain a dedicated automation/administration account rather than a shared personal account. If you prefer sudo to require a password, omit the NOPASSWD sudoers rule and run Ansible with `--ask-become-pass`.
 
 ### 1. Create the local account in each Ubuntu VM
 
