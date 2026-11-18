@@ -9,7 +9,7 @@ Ansible automation for deploying self-hosted business services on Proxmox QEMU V
 - The current Caddy fragment integration expects one active host in `[caddy]`; that host is resolved dynamically from the group rather than by a fixed inventory hostname.
 - Prometheus, Grafana and Loki are one monitoring stack in one Compose project and always run together on the same host.
 - The Docker hosts are **Proxmox QEMU VMs running Ubuntu Server 26.04 LTS**. Docker Engine and Compose run inside each VM.
-- Docker Compose runs the application containers. Each Compose project has its own automatically created default network.
+- Docker Engine is rootful (not rootless). The SSH account configured by `ansible_user` belongs to the `docker` group and runs Docker Compose directly, without `sudo` for container operations. Membership in `docker` is effectively root-equivalent and must be treated as privileged access.\n- Docker is enabled as a system service and starts at host boot. Containers use `restart: unless-stopped` by default so Docker brings them back after daemon/host restarts.\n- All Compose projects, configuration and bind-mounted persistent data live under `/opt/<application>/` (for example `/opt/authentik`, `/opt/caddy`, `/opt/monitoring`). Do not use Docker-managed named volumes for application data.\n- Compose bind mounts use explicit paths below each application's directory. Application directories and deployment files are owned by `ansible_user`; individual data directories may require container-specific UID/GID or ACL permissions for the process inside the container.\n- Docker Compose runs the application containers. Each Compose project has its own automatically created default network.
 - Containers in the same Compose project communicate using Compose service names.
 - Services on different VMs communicate through private DNS names/IP addresses and published ports. No shared external Docker network is required.
 - Caddy is the reverse proxy. Each application Ansible role owns its own Caddy site fragment; application roles do not rewrite a shared Caddyfile.
@@ -21,7 +21,7 @@ Each Proxmox VM provides a normal Ubuntu 26.04 environment for Docker. Run Docke
 
 Create a QEMU VM for each Docker host, install Ubuntu Server 26.04 LTS, enable the OpenSSH server, and ensure `/usr/bin/python3` is available. Use a normal VM disk on reliable storage and configure backups at the Proxmox level. Install Docker Engine and the Compose plugin through the `common` Ansible role.
 
-## Accounts and privilege escalation
+## Accounts, Docker access and privilege escalation
 
 Ansible connects to each Docker host (Ubuntu VM) using a **normal local Linux account**, not the root account.
 
@@ -29,11 +29,11 @@ The example inventory sets:
 
 - SSH user: `ansible`
 - SSH key on the Ansible control machine: `~/.ssh/id_ed25519_ansible`
-- Privilege escalation: `sudo` to `root` for tasks that need administrative privileges.
+- Docker access: membership in the `docker` group (effectively root-equivalent).\n- `sudo` is used only by Ansible tasks that configure the host OS, install packages, manage system services and create protected host directories; Compose deployments run as `ansible_user`.
 
-Create the local `ansible` account in every target Ubuntu VM before running the playbooks. The account needs a home directory, the public SSH key in `~ansible/.ssh/authorized_keys`, and permission to use sudo. Do not enable direct SSH login as root.
+Create the local `ansible` account in every target Ubuntu VM before running the playbooks. The account needs a home directory, the public SSH key in `~ansible/.ssh/authorized_keys`, passwordless sudo for initial host provisioning, and membership in the `docker` group. The `common` role adds it to that group automatically. Do not enable direct SSH login as root.
 
-For unattended deployments (for example from a Forgejo runner), the example below gives this dedicated account passwordless sudo. This account is consequently highly privileged: protect its private SSH key and restrict network access to SSH. It has an interactive Bash shell for straightforward SSH administration, but should remain a dedicated automation/administration account rather than a shared personal account. If you prefer sudo to require a password, omit the NOPASSWD sudoers rule and run Ansible with `--ask-become-pass`.
+The example below gives this dedicated account passwordless sudo because the baseline must install packages and configure host services without interaction. The `docker` group is also effectively root-equivalent. Protect its private SSH key and restrict network access to SSH. Normal container deployment tasks do not use sudo; they run as the SSH account. The account has an interactive Bash shell for straightforward SSH administration.
 
 ### 1. Create the local account in each Ubuntu VM
 
@@ -102,7 +102,7 @@ The login should open a shell as `ansible`. Verify that sudo works:
 sudo -n whoami
 ```
 
-It should print `root`. This does not mean Ansible logs in as root: SSH still uses the local `ansible` account, and sudo is used only for privileged tasks.
+It should print `root`. Then verify Docker access without sudo:\n\n```bash\ndocker info\n```\n\nThe `common` role adds the account to the Docker group and resets the SSH connection so the new group membership applies. SSH still logs in as the local `ansible` account.
 
 ### 4. Configure the inventory
 
@@ -149,7 +149,7 @@ cd ansible
 ansible-galaxy collection install -r requirements.yml
 ```
 
-The target Ubuntu VMs need Python 3 available at `/usr/bin/python3` (the inventory sets this interpreter), SSH access, and sudo configured as described above.
+The target Ubuntu VMs need Python 3 available at `/usr/bin/python3` (the inventory sets this interpreter), SSH access, passwordless sudo for host provisioning, and Docker group access configured by the `common` role.
 
 ## Configure secrets
 
@@ -235,7 +235,7 @@ To run only the common baseline on one Docker host:
 ansible-playbook playbooks/common.yml --limit apps-01
 ```
 
-If sudo requires a password, add `--ask-become-pass` to the command. With the recommended NOPASSWD configuration, this is not necessary.
+The Compose deployment runs as `ansible_user`; privileged host preparation tasks use sudo through Ansible's `become` mechanism.
 
 ## Before exposing services
 
@@ -243,7 +243,7 @@ If sudo requires a password, add `--ask-become-pass` to the command. With the re
 - Enable `authentik_caddy_enabled` and/or `monitoring_caddy_enabled` only when their DNS names resolve to the Caddy VM.
 - The default `service_bind_address` binds published service ports to each VM's `ansible_host` address. Ensure that this is the private interface address and restrict access with firewall rules.
 - Permit only the required traffic between VMs and trusted admin networks. Do not expose database, Redis, Docker API or Caddy's admin API ports to the public Internet.
-- Back up persistent Compose volumes and configuration before upgrades.
+- Back up `/opt/<application>/` directories. Database backups must be application-consistent (for example, use PostgreSQL logical/physical backup procedures rather than copying a live data directory blindly).
 
 See [the Compose and Caddy fragment guide](docs/ansible-compose-and-caddy-fragments.md) for details about service networking, Caddy fragment ownership and monitoring.
 See [the Authentik Mittbolag setup](docs/authentik-mittbolag.md) for the initial users and groups, domain/DNS requirements, and per-application OIDC configuration.
