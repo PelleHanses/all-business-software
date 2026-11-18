@@ -24,6 +24,7 @@
     name: dnsmasq.service
     state: stopped
     enabled: false
+  become: true
   failed_when: false
 
 - name: Remove host-installed dnsmasq package
