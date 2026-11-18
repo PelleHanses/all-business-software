@@ -12,8 +12,6 @@ services:
       APACHE_ADDITIONAL_NETWORK: ""
       SKIP_DOMAIN_VALIDATION: "{{ nextcloud_aio_skip_domain_validation | ternary('true', 'false') }}"
     volumes:
-      - "{{ nextcloud_aio_mastercontainer_volume }}:/mnt/docker-aio-config"
+      - ./data:/mnt/docker-aio-config
       - /var/run/docker.sock:/var/run/docker.sock:ro
 
-volumes:
-  "{{ nextcloud_aio_mastercontainer_volume }}":
