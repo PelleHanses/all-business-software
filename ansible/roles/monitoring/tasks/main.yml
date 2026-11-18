@@ -24,6 +24,9 @@
   loop:
     - prometheus
     - loki
+    - prometheus/data
+    - grafana/data
+    - loki/data
 
 - name: Deploy Prometheus configuration
   ansible.builtin.template:
