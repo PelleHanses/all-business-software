@@ -3,4 +3,3 @@
   community.docker.docker_compose_v2:
     project_src: "{{ caddy_config_dir }}"
     state: present
-  become: true
