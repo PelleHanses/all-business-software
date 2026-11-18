@@ -3,9 +3,12 @@ services:
     image: "{{ dnsmasq_image }}"
     container_name: dnsmasq
     network_mode: host
+    cap_drop:
+      - ALL
     cap_add:
       - NET_ADMIN
       - NET_RAW
+      - NET_BIND_SERVICE
     restart: "{{ dnsmasq_restart_policy }}"
     volumes:
       - ./dnsmasq.conf:/etc/dnsmasq.conf:ro
