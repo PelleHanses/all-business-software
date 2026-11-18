@@ -1,5 +1,5 @@
 ---
-dnsmasq_image: "dockurr/dnsmasq:2.93"
+dnsmasq_image: "ghcr.io/dockur/dnsmasq:2.93"
 dnsmasq_config_dir: "/opt/dnsmasq"
 dnsmasq_config_file: "{{ dnsmasq_config_dir }}/dnsmasq.conf"
 dnsmasq_compose_file: "{{ dnsmasq_config_dir }}/docker-compose.yml"
