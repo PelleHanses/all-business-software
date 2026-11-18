@@ -18,8 +18,8 @@
   ansible.builtin.file:
     path: "{{ monitoring_config_dir }}/{{ item }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0750"
   loop:
     - prometheus
@@ -29,8 +29,8 @@
   ansible.builtin.template:
     src: prometheus.yml.j2
     dest: "{{ monitoring_config_dir }}/prometheus/prometheus.yml"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0640"
   notify: Restart Monitoring
 
@@ -38,8 +38,8 @@
   ansible.builtin.template:
     src: loki.yml.j2
     dest: "{{ monitoring_config_dir }}/loki/loki.yml"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0640"
   notify: Restart Monitoring
 
@@ -47,8 +47,8 @@
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ monitoring_compose_file }}"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0600"
   no_log: true
   diff: false
@@ -58,8 +58,8 @@
   ansible.builtin.template:
     src: grafana.caddy.j2
     dest: "{{ hostvars[caddy_host].caddy_sites_dir | default(compose_dir ~ '/caddy/sites') }}/grafana.caddy"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0640"
   delegate_to: "{{ caddy_host }}"
   when: monitoring_caddy_enabled | bool
