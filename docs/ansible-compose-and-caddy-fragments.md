@@ -2,7 +2,7 @@
 
 ## Architecture
 
-- Each Proxmox QEMU VM runs Ubuntu Server 26.04 and can host one or more independent Compose projects under `/opt/docker/compose/<project>`. Service roles can share a VM; inventory service groups determine placement.
+- Each Proxmox QEMU VM runs Ubuntu Server 26.04 and can host one or more independent Compose projects under `/opt/<project>`. Service roles can share a VM; inventory service groups determine placement.
 - Docker Engine and the Compose plugin run directly inside the Ubuntu VM. Use a normal QEMU VM rather than nesting Docker inside a Proxmox LXC container.
 - Prometheus, Grafana and Loki are a single monitoring stack and run together on the host in `[monitoring]`.
 - Docker Compose creates one default network per project. Services in the same project use Compose service names.
@@ -63,3 +63,12 @@ The `-l` limit is intentional. Use a service group for a service deployment, for
 - Alloy uses a separate Compose project on every Docker host. A Docker Socket Proxy is used to restrict the Docker API to read-oriented endpoints; the Docker socket remains a highly privileged interface and should be treated accordingly.
 - The Loki schema keeps the existing BoltDB/v11 period readable and writes new data using TSDB/v13. Back up existing Loki data before changing versions or storage configuration.
 - Firewall rules should permit Authentik's 9000/tcp only from Caddy, Loki's 3100/tcp from Docker hosts running Alloy, and monitoring UI/API ports only from trusted admin networks.
+
+
+## Host paths, ownership and startup
+
+The standard layout is one directory per application directly below `/opt`, for example `/opt/caddy`, `/opt/authentik` and `/opt/monitoring`. Compose files, configuration and persistent data are kept together in that directory and mounted with bind mounts. The deployment account (`ansible_user`) owns application files and directories.
+
+The rootful Docker daemon is managed by systemd and enabled at host boot. The `ansible_user` account is added to the `docker` group by the common role; this group grants effectively root-equivalent access. Compose operations run as that account without `become`. Containers use `unless-stopped` by default so Docker restarts them after host reboot.
+
+Container processes do not necessarily run with the same UID/GID as the host deployment account. Persistent data directories must be writable by the UID/GID used inside the relevant image. Ansible must handle those application-specific permissions explicitly; do not solve permission errors by making all data world-writable. Database data must be backed up using an application-consistent procedure.
