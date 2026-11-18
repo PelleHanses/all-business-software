@@ -19,7 +19,14 @@
     state: present
   become: true
 
-- name: Ensure Docker is running
+- name: Add the Ansible account to the Docker group
+  ansible.builtin.user:
+    name: "{{ common_admin_user }}"
+    groups: docker
+    append: true
+  become: true
+
+- name: Ensure Docker is running and enabled at boot
   ansible.builtin.service:
     name: docker
     state: started
@@ -37,11 +44,26 @@
     state: present
   become: true
 
-- name: Create Compose root directory
+- name: Create application root directory
   ansible.builtin.file:
     path: "{{ compose_dir }}"
     state: directory
     owner: root
     group: root
     mode: "0755"
+  become: true
+
+- name: Create application directories owned by the Ansible account
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
+    mode: "0750"
+  loop:
+    - "{{ compose_dir }}/alloy"
+    - "{{ compose_dir }}/caddy"
+    - "{{ compose_dir }}/authentik"
+    - "{{ compose_dir }}/monitoring"
+    - "{{ compose_dir }}/nextcloud-aio"
   become: true
