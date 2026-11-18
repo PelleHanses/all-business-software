@@ -252,7 +252,7 @@ See [the Authentik Mittbolag setup](docs/authentik-mittbolag.md) for the initial
 
 The repository also includes:
 
-- `dnsmasq`: native Ubuntu service for internal DNS and optional DHCP. DHCP is disabled by default; configure and verify the correct network interface and DHCP range before enabling it.
+- `dnsmasq`: Docker Compose service for internal DNS and optional DHCP, using host networking so DNS and DHCP broadcasts work directly on the VM network. DHCP is disabled by default.
 - `nextcloud_aio`: official Nextcloud All-in-One mastercontainer in a separate Docker Compose project, with an optional Caddy reverse-proxy fragment.
 - Caddy can optionally run a generic PHP-FPM container in its own Compose project. This is intended for other PHP applications, not Nextcloud AIO.
 
