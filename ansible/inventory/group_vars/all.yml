@@ -13,7 +13,7 @@ common_timezone: "Europe/Stockholm"
 common_locale: "sv_SE.UTF-8"
 
 # Compose projects are local to each Docker host.
-compose_dir: "/opt/docker/compose"
+compose_dir: "/opt"
 docker_compose_restart_policy: "unless-stopped"
 
 # Resolve the Caddy host from inventory rather than relying on its hostname.
