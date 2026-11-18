@@ -28,6 +28,19 @@
     - grafana/data
     - loki/data
 
+- name: Grant monitoring container UIDs access to persistent data directories
+  ansible.builtin.command:
+    argv:
+      - setfacl
+      - -m
+      - "u:{{ item.uid }}:rwx,d:u:{{ item.uid }}:rwx"
+      - "{{ monitoring_config_dir }}/{{ item.path }}"
+  loop:
+    - { path: "prometheus/data", uid: 65534 }
+    - { path: "grafana/data", uid: 472 }
+    - { path: "loki/data", uid: 10001 }
+  changed_when: false
+
 - name: Deploy Prometheus configuration
   ansible.builtin.template:
     src: prometheus.yml.j2
