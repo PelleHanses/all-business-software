@@ -13,16 +13,16 @@
   ansible.builtin.file:
     path: "{{ nextcloud_aio_config_dir }}"
     state: directory
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0750"
 
 - name: Deploy Nextcloud AIO Compose file
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: "{{ nextcloud_aio_config_dir }}/docker-compose.yml"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0600"
 
 - name: Ensure Nextcloud AIO mastercontainer is running
@@ -35,8 +35,8 @@
   ansible.builtin.template:
     src: nextcloud.caddy.j2
     dest: "{{ hostvars[caddy_host].caddy_sites_dir }}/nextcloud.caddy"
-    owner: root
-    group: root
+    owner: "{{ docker_compose_owner }}"
+    group: "{{ docker_compose_group }}"
     mode: "0640"
   delegate_to: "{{ caddy_host }}"
   when: nextcloud_aio_caddy_enabled | bool
